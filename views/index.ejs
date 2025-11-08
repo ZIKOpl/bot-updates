@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bot Updates Panel</title>
-  <link rel="stylesheet" href="/style.css?v=3">
+  <link rel="stylesheet" href="/style.css?v=4">
 </head>
 <body>
   <nav class="nav">
@@ -22,38 +22,37 @@
     </div>
   </nav>
 
-  <section class="hero fade-in">
+  <header class="hero fade-in">
     <h1>🚀 Gestionnaire de mise à jour</h1>
-    <p>Automatise les updates de ton bot Discord facilement.</p>
+    <p>Gère et distribue automatiquement les versions de ton bot Discord en toute simplicité.</p>
     <span class="version-pill">Dernière version : <%= version %></span>
-  </section>
+  </header>
 
-  <div class="container dashboard-layout">
-    <div class="main-card glow-card">
+  <main class="container home-layout fade-in">
+    <section class="card home-card">
       <h2>📦 Dernière Release</h2>
-      <div class="release-info">
-        <div><strong>Version :</strong> <%= version %></div>
-        <div><strong>Date :</strong> <%= date %></div>
-        <div><strong>Téléchargements :</strong> <%= downloads %></div>
-      </div>
-    </div>
+      <p><strong>Version :</strong> <%= version %></p>
+      <p><strong>Date :</strong> <%= date %></p>
+      <p><strong>Téléchargements :</strong> <%= downloads %></p>
+    </section>
 
-    <div class="side-card">
-      <div class="card glow-mini">
-        <h3>📊 Statistiques</h3>
-        <p>Total de bots : <%= totalBots %></p>
-        <p>À jour : <%= upToDate %></p>
-        <p>Obsolètes : <%= outdated %></p>
-      </div>
+    <section class="card home-card">
+      <h2>📊 Statistiques</h2>
+      <p>Total de bots : <%= totalBots %></p>
+      <p>À jour : <%= upToDate %></p>
+      <p>Obsolètes : <%= outdated %></p>
+    </section>
 
-      <div class="card glow-mini">
-        <h3>⚙️ Status</h3>
-        <p>Panel actif</p>
-        <p>Dernier check : <%= new Date().toLocaleTimeString("fr-FR") %></p>
-      </div>
-    </div>
-  </div>
+    <section class="card home-card">
+      <h2>⚙️ Informations</h2>
+      <p>Serveur actif : ✅</p>
+      <p>Dernière mise à jour : <%= new Date().toLocaleString("fr-FR") %></p>
+      <p>Panel : en ligne</p>
+    </section>
+  </main>
 
-  <footer class="footer">© 2025 — Bot Updates Panel</footer>
+  <footer class="footer">
+    <p>© 2025 — Bot Updates Panel</p>
+  </footer>
 </body>
 </html>
