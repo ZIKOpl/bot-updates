@@ -1,64 +1,17 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
   <title>Accès refusé</title>
-  <style>
-    body {
-      background: linear-gradient(135deg, #1a1a2e, #161621);
-      color: white;
-      font-family: "Poppins", sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-    }
-    .card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 15px;
-      padding: 40px;
-    }
-    a {
-      display: inline-block;
-      margin-top: 15px;
-      background: #5865f2;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: 600;
-    }
-    a:hover { background: #4752c4; }
-  </style>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <div class="card">
-    <h1>🚫 Accès refusé</h1>
-    <p>Vous n’avez pas les permissions pour accéder à ce panneau.</p>
-    <a href="/logout">Changer de compte</a>
-  </div>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>Accès refusé — Bot Updates</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="/public/style.css" />
-</head>
-<body class="center">
-  <div class="card big">
-    <div class="ban-icon"></div>
-    <h1>🚫 Accès refusé</h1>
-    <p>Tu n’as pas l’autorisation pour accéder au dashboard.</p>
-    <div class="row gap">
-      <a class="btn ghost" href="/">Retour</a>
-      <a class="btn primary" href="/login">Se connecter avec Discord</a>
-    </div>
+  <div class="forbidden">
+    <div class="icon">🚫</div>
+    <h1>Accès refusé</h1>
+    <p>Tu n’as pas la permission d’accéder à ce dashboard.</p>
+    <a href="/" class="btn ghost">Retour à l’accueil</a>
   </div>
 </body>
 </html>

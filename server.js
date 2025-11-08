@@ -13,22 +13,20 @@ const app = express();
 const UPLOAD_DIR = path.join(__dirname, "uploads");
 const STATS_FILE = path.join(UPLOAD_DIR, "stats.json");
 const VERSION_FILE = path.join(UPLOAD_DIR, "version.txt");
-const OWNER_ID = process.env.OWNER_ID; // ton ID Discord
-const SESSION_SECRET = process.env.SESSION_SECRET || "super_secret_session";
+
+const OWNER_ID = process.env.OWNER_ID;
+const SESSION_SECRET = process.env.SESSION_SECRET || "secret_session";
 const PORT = process.env.PORT || 3000;
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-let currentVersion = "v1";
-if (fs.existsSync(VERSION_FILE)) {
-  currentVersion = fs.readFileSync(VERSION_FILE, "utf8").trim();
-}
+let currentVersion = fs.existsSync(VERSION_FILE)
+  ? fs.readFileSync(VERSION_FILE, "utf8").trim()
+  : "v1.0";
 
-/* ===================== STATS ===================== */
-let stats = { downloads: 0, bots: {} };
-if (fs.existsSync(STATS_FILE)) {
-  stats = JSON.parse(fs.readFileSync(STATS_FILE, "utf8"));
-}
+let stats = fs.existsSync(STATS_FILE)
+  ? JSON.parse(fs.readFileSync(STATS_FILE, "utf8"))
+  : { downloads: 0, bots: {} };
 
 /* ===================== EXPRESS ===================== */
 
@@ -74,21 +72,19 @@ function isOwner(req) {
 const upload = multer({ dest: UPLOAD_DIR });
 
 app.post("/upload", upload.single("updateZip"), (req, res) => {
-  if (!isOwner(req)) return res.status(403).send("Forbidden");
+  if (!isOwner(req)) return res.status(403).send("Accès refusé");
   const newVersion = (req.body.version || "").trim();
-  if (!req.file || !newVersion) return res.status(400).send("Version manquante ou fichier absent");
+  if (!req.file || !newVersion) return res.status(400).send("Version ou fichier manquant");
 
   const target = path.join(UPLOAD_DIR, `${newVersion}.zip`);
   fs.renameSync(req.file.path, target);
   currentVersion = newVersion;
   fs.writeFileSync(VERSION_FILE, currentVersion, "utf8");
-
   res.status(200).send("OK");
 });
 
 /* ===================== ROUTES ===================== */
 
-// 🔹 Page publique
 app.get("/", (req, res) => {
   const totalBots = Object.keys(stats.bots).length;
   const upToDate = Object.values(stats.bots).filter(b => b.version === currentVersion).length;
@@ -113,15 +109,13 @@ app.get("/", (req, res) => {
     totalBots,
     upToDate,
     outdated,
-    releases,
-    checks: Object.keys(stats.bots).length
+    releases
   });
 });
 
-// 🔹 Dashboard admin
 app.get("/dashboard", (req, res) => {
   if (!isOwner(req)) return res.status(403).render("forbidden");
-  const files = fs.readdirSync(UPLOAD_DIR)
+  const releases = fs.readdirSync(UPLOAD_DIR)
     .filter(f => f.endsWith(".zip"))
     .map(f => {
       const stat = fs.statSync(path.join(UPLOAD_DIR, f));
@@ -133,10 +127,10 @@ app.get("/dashboard", (req, res) => {
     })
     .sort((a, b) => b.size - a.size);
 
-  res.render("dashboard", { user: req.user, version: currentVersion, files, releases: files });
+  res.render("dashboard", { user: req.user, version: currentVersion, releases });
 });
 
-/* ===================== API ===================== */
+/* ===================== API VERSION ===================== */
 
 app.get("/api/version", (req, res) => {
   const botId = req.query.bot_id || "unknown";
@@ -163,17 +157,12 @@ app.get("/download/:file", (req, res) => {
 /* ===================== AUTH ===================== */
 
 app.get("/login", passport.authenticate("discord"));
-app.get(
-  "/callback",
+app.get("/callback",
   passport.authenticate("discord", { failureRedirect: "/" }),
   (req, res) => res.redirect("/dashboard")
 );
-app.get("/logout", (req, res) => {
-  req.logout(() => res.redirect("/"));
-});
+app.get("/logout", (req, res) => req.logout(() => res.redirect("/")));
 
 /* ===================== START ===================== */
 
-app.listen(PORT, () => {
-  console.log(`✅ Panel en ligne sur le port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`✅ Panel en ligne sur http://localhost:${PORT}`));

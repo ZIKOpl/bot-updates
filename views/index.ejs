@@ -2,126 +2,75 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Bot Updates — Public</title>
+  <title>Bot Updates</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="/public/style.css" />
+  <link rel="stylesheet" href="/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" defer></script>
-
   <script defer>
     document.addEventListener("DOMContentLoaded", () => {
-      // Animation des compteurs
-      document.querySelectorAll("[data-count]").forEach(el => {
-        const end = Number(el.dataset.count || "0");
-        let cur = 0;
-        const step = Math.max(1, Math.round(end/30));
-        const tick = () => {
-          cur = Math.min(end, cur + step);
-          el.textContent = cur.toLocaleString("fr-FR");
-          if (cur < end) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
+      const upToDate = <%= JSON.stringify(upToDate) %>;
+      const outdated = <%= JSON.stringify(outdated) %>;
+      const ctx = document.getElementById("versionChart");
+      if (!ctx) return;
+
+      new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["À jour", "Anciennes versions"],
+          datasets: [{
+            data: [upToDate, outdated],
+            backgroundColor: ["#4caf50", "#ff5252"]
+          }]
+        },
+        options: {
+          plugins: { legend: { labels: { color: "#ddd" } } }
+        }
       });
-
-      // Chart — stats bots
-      const ctx = document.getElementById("botsChart");
-      if (ctx) {
-        const upToDate = Number(ctx.dataset.up || 0);
-        const outdated = Number(ctx.dataset.out || 0);
-
-        new Chart(ctx, {
-          type: "doughnut",
-          data: {
-            labels: ["À jour", "En retard"],
-            datasets: [{
-              data: [upToDate, outdated],
-              backgroundColor: ["#22c55e", "#ef4444"]
-            }]
-          },
-          options: {
-            responsive: true,
-            cutout: "70%",
-            plugins: {
-              legend: { position: "bottom", labels: { color: "#fff" } }
-            }
-          }
-        });
-      }
     });
   </script>
 </head>
 
 <body>
   <header class="nav">
-    <div class="brand">
-      <div class="logo"></div> <span>Bot Updates</span>
-    </div>
+    <div class="brand"><div class="logo"></div><span>Bot Updates</span></div>
     <nav class="actions">
       <% if (user) { %>
         <a class="btn ghost" href="/dashboard">Dashboard</a>
-        <a class="btn danger" href="/logout">Se déconnecter</a>
+        <a class="btn danger" href="/logout">Déconnexion</a>
       <% } else { %>
-        <a class="btn primary" href="/login">Se connecter avec Discord</a>
+        <a class="btn primary" href="/login">Connexion</a>
       <% } %>
     </nav>
   </header>
 
   <main class="container">
     <section class="hero">
-      <h1>Distribution d’updates simple & fiable</h1>
-      <p>
-        Glisse ton <strong>.zip</strong> dans le dashboard (privé),
-        tes bots font <code>+update</code> et récupèrent automatiquement
-        la <strong>dernière version</strong>.
-      </p>
-      <div class="version-pill">
-        Version actuelle : <strong><%= version %></strong>
-      </div>
+      <h1>Gestion des mises à jour</h1>
+      <p>Suivi automatique des versions de votre bot Discord.</p>
+      <div class="version-pill">Dernière version : <strong><%= version %></strong></div>
     </section>
 
-    <section class="grid stats">
-      <div class="card stat">
-        <div class="label">Téléchargements</div>
-        <div class="value" data-count="<%= downloads %>">0</div>
+    <section class="grid">
+      <div class="card">
+        <h2>📊 Statistiques</h2>
+        <p>Total de bots : <strong><%= totalBots %></strong></p>
+        <p>Téléchargements : <strong><%= downloads %></strong></p>
+        <canvas id="versionChart" height="160"></canvas>
       </div>
-      <div class="card stat">
-        <div class="label">Vérifications</div>
-        <div class="value" data-count="<%= checks %>">0</div>
-      </div>
-      <div class="card stat">
-        <div class="label">Bots suivis</div>
-        <div class="value" data-count="<%= totalBots %>">0</div>
-      </div>
-      <div class="card chart">
-        <canvas
-          id="botsChart"
-          width="280"
-          height="280"
-          data-up="<%= upToDate %>"
-          data-out="<%= outdated %>"
-          aria-label="Répartition des bots"
-        ></canvas>
-      </div>
-    </section>
 
-    <section class="card releases">
-      <h2>Dernières releases</h2>
-      <div class="release-list">
-        <% if (!releases || releases.length === 0) { %>
-          <div class="empty">Aucune release publiée pour le moment.</div>
+      <div class="card">
+        <h2>📦 Versions disponibles</h2>
+        <% if (releases.length) { %>
+          <div class="release-list">
+            <% releases.forEach(r => { %>
+              <div class="release-item">
+                <div class="v">Version <%= r.version %></div>
+                <div class="meta"><%= (r.size / 1024 / 1024).toFixed(2) %> Mo</div>
+              </div>
+            <% }) %>
+          </div>
         <% } else { %>
-          <% releases.forEach(r => { %>
-            <div class="release-item">
-              <div>
-                <div class="v">v<%= r.version.replace(/^v/,'') %></div>
-                <div class="meta">
-                  <%= new Date(r.date).toLocaleString('fr-FR') %>
-                </div>
-              </div>
-              <div class="meta">
-                <%= (r.size/1024/1024).toFixed(2) %> Mo
-              </div>
-            </div>
-          <% }) %>
+          <p class="empty">Aucune version publiée.</p>
         <% } %>
       </div>
     </section>
