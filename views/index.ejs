@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Mises à jour du bot</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+  </head>
+  <body style="font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto;">
+    <h1>🤖 Dernière version : <%= version %></h1>
+    <% if (!user) { %>
+      <p><a href="/login">Se connecter avec Discord</a></p>
+    <% } else { %>
+      <p>Connecté en tant que <b><%= user.username %>#<%= user.discriminator %></b></p>
+      <p><a href="/dashboard">Aller au dashboard admin</a> • <a href="/logout">Se déconnecter</a></p>
+    <% } %>
+    <hr />
+    <p>Endpoint public pour les bots : <code>/api/version</code></p>
+  </body>
+</html>
