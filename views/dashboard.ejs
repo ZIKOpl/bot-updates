@@ -2,135 +2,142 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Dashboard – Bot Updates</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard — Bot Updates</title>
   <link rel="stylesheet" href="/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" defer></script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="brand">
+      <div class="logo"></div>
+      <h1>Dashboard</h1>
+    </div>
+    <div class="actions">
+      <a href="/" class="btn ghost">Accueil</a>
+      <a href="/logout" class="btn danger">Se déconnecter</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section class="hero">
+      <h1>📤 Panneau d’administration</h1>
+      <p>Déposez la nouvelle version de votre bot ci-dessous pour la publier.</p>
+    </section>
+
+    <form id="uploadForm" class="upload-form" enctype="multipart/form-data">
+      <input type="text" name="version" placeholder="Version (ex: 2.3)" required />
+      <div id="dropZone" class="drop-zone">
+        <p id="uploadText">Glissez-déposez votre ZIP ici ou cliquez pour choisir un fichier</p>
+        <input type="file" id="fileInput" name="file" accept=".zip" hidden required />
+      </div>
+      <button type="submit" class="btn primary">📦 Télécharger la mise à jour</button>
+    </form>
+
+    <div class="grid" style="margin-top:2rem;">
+      <div class="card">
+        <h2>📈 Historique des versions</h2>
+        <canvas id="relChart"></canvas>
+      </div>
+
+      <div class="card">
+        <h2>🕒 Versions publiées</h2>
+        <div class="release-list">
+          <% if (releases && releases.length > 0) { %>
+            <% releases.forEach(r => { %>
+              <div class="release-item">
+                <span>v<%= r.version %></span>
+                <span><%= (r.size / 1024 / 1024).toFixed(2) %> Mo</span>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <p class="empty">Aucune version publiée</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>© 2025 Bot Updates — Panneau d’administration</p>
+  </footer>
 
   <script defer>
     document.addEventListener("DOMContentLoaded", () => {
-      const form = document.getElementById("uploadForm");
+      const dropZone = document.getElementById("dropZone");
+      const fileInput = document.getElementById("fileInput");
       const txt = document.getElementById("uploadText");
-      const input = document.getElementById("fileInput");
+      const form = document.getElementById("uploadForm");
 
-      // 🖱️ Drag & Drop
-      const dropZone = document.querySelector(".drop-zone");
-      dropZone.addEventListener("click", () => input.click());
-      dropZone.addEventListener("dragover", (e) => {
+      dropZone.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", e => {
+        const file = e.target.files[0];
+        if (file) txt.textContent = `📦 ${file.name}`;
+      });
+
+      dropZone.addEventListener("dragover", e => {
         e.preventDefault();
         dropZone.classList.add("hover");
       });
       dropZone.addEventListener("dragleave", () => dropZone.classList.remove("hover"));
-      dropZone.addEventListener("drop", (e) => {
+      dropZone.addEventListener("drop", e => {
         e.preventDefault();
         dropZone.classList.remove("hover");
         const file = e.dataTransfer.files[0];
         if (file) {
-          input.files = e.dataTransfer.files;
-          txt.textContent = "📦 Fichier sélectionné : " + file.name;
+          fileInput.files = e.dataTransfer.files;
+          txt.textContent = `📦 ${file.name}`;
         }
       });
 
-      input.addEventListener("change", () => {
-        if (input.files.length)
-          txt.textContent = "📦 Fichier sélectionné : " + input.files[0].name;
-      });
-
-      // 📤 Upload
-      form.addEventListener("submit", async (e) => {
+      form.addEventListener("submit", async e => {
         e.preventDefault();
         const formData = new FormData(form);
+        txt.textContent = "⏳ Envoi en cours...";
+
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "/upload");
-        txt.textContent = "⏳ Upload en cours...";
 
         xhr.onload = () => {
           if (xhr.status === 200) {
             txt.textContent = "✅ Upload terminé";
             setTimeout(() => window.location.reload(), 1000);
-          } else alert("Erreur : " + xhr.responseText);
+          } else txt.textContent = "❌ Erreur : " + xhr.responseText;
         };
-        xhr.onerror = () => alert("Erreur réseau.");
+
+        xhr.onerror = () => txt.textContent = "❌ Erreur réseau.";
         xhr.send(formData);
       });
 
-      // 📊 Graphique
-      const rel = <%- JSON.stringify(releases || []) %>;
+      // ✅ Fix Render : parser les données serveur
+      const rel = JSON.parse('<%- JSON.stringify(releases || []) %>');
       const ctx = document.getElementById("relChart");
-      if (ctx && rel.length) {
-        const labels = rel.map(r => r.version);
-        const values = rel.map(r => Number((r.size / 1024 / 1024).toFixed(2)));
+      if (!ctx || !rel.length) return;
 
-        new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels,
-            datasets: [{
-              label: "Taille (Mo)",
-              data: values,
-              backgroundColor: "#6c8cff"
-            }]
+      const labels = rel.map(r => "v" + r.version);
+      const values = rel.map(r => Number((r.size / 1024 / 1024).toFixed(2)));
+
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Taille du build (Mo)",
+            data: values,
+            backgroundColor: "#6c8cff"
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { labels: { color: "#ddd" } }
           },
-          options: {
-            plugins: { legend: { labels: { color: "#ddd" } } },
-            scales: {
-              x: { ticks: { color: "#ccc" } },
-              y: { ticks: { color: "#ccc" } }
-            }
+          scales: {
+            x: { ticks: { color: "#ccc" } },
+            y: { ticks: { color: "#ccc" } }
           }
-        });
-      }
+        }
+      });
     });
   </script>
-</head>
-
-<body>
-  <header class="nav">
-    <div class="brand"><div class="logo"></div><span>Bot Updates</span></div>
-    <nav class="actions">
-      <a class="btn ghost" href="/">Accueil</a>
-      <a class="btn danger" href="/logout">Déconnexion</a>
-    </nav>
-  </header>
-
-  <main class="container">
-    <section class="hero">
-      <h1>🛠️ Tableau de bord</h1>
-      <p>Bienvenue <%= user.username %> !</p>
-      <div class="version-pill">Version actuelle : <strong><%= version %></strong></div>
-    </section>
-
-    <section class="card">
-      <h2>⬆️ Mettre en ligne une nouvelle version</h2>
-      <form id="uploadForm" enctype="multipart/form-data" class="upload-form">
-        <div class="drop-zone">
-          <input id="fileInput" type="file" name="updateZip" accept=".zip" hidden />
-          <p id="uploadText">Glissez un fichier ZIP ici ou cliquez pour parcourir</p>
-        </div>
-        <input type="text" name="version" placeholder="Nom de la version (ex: v2.4)" required />
-        <button class="btn primary" type="submit">📤 Envoyer</button>
-      </form>
-    </section>
-
-    <section class="grid">
-      <div class="card">
-        <h2>📊 Historique des versions</h2>
-        <% if (releases.length) { %>
-          <canvas id="relChart" height="150"></canvas>
-          <ul class="release-list">
-            <% releases.forEach(r => { %>
-              <li>📦 <strong><%= r.version %></strong> — <%= (r.size / 1024 / 1024).toFixed(2) %> Mo</li>
-            <% }) %>
-          </ul>
-        <% } else { %>
-          <p class="empty">Aucune version disponible.</p>
-        <% } %>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <span>© <script>document.write(new Date().getFullYear())</script> Bot Updates</span>
-  </footer>
 </body>
 </html>
