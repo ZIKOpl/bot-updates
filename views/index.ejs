@@ -1,58 +1,88 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bot Updates Panel</title>
-  <link rel="stylesheet" href="/style.css?v=4">
+  <meta charset="utf-8" />
+  <title>Bot Updates</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
+  <!-- NAV -->
   <nav class="nav">
     <div class="brand">
-      <div class="logo"></div>
+      <span class="logo-dot"></span>
       <span>Bot Updates</span>
     </div>
-    <div class="actions">
-      <% if (user) { %>
-        <a href="/dashboard" class="btn primary">Dashboard</a>
-        <a href="/logout" class="btn danger">Déconnexion</a>
-      <% } else { %>
-        <a href="/login" class="btn primary">Connexion Discord</a>
-      <% } %>
+    <div class="nav-right">
+      <div class="logo-right">
+        <img src="/logo.png" alt="HOME UPDATE" />
+        <span>HOME UPDATE</span>
+      </div>
+      <div class="actions">
+        <% if (user) { %>
+          <a class="btn" href="/dashboard">Dashboard</a>
+          <a class="btn danger" href="/logout">Déconnexion</a>
+        <% } else { %>
+          <a class="btn primary" href="/login">Connexion Discord</a>
+        <% } %>
+      </div>
     </div>
   </nav>
 
-  <header class="hero fade-in">
-    <h1>🚀 Gestionnaire de mise à jour</h1>
-    <p>Gère et distribue automatiquement les versions de ton bot Discord en toute simplicité.</p>
-    <span class="version-pill">Dernière version : <%= version %></span>
-  </header>
+  <main class="container">
+    <header class="hero">
+      <h1>Gestionnaire de mise à jour</h1>
+      <p>Automatise les updates de ton bot Discord facilement.</p>
+      <span class="version-pill">Dernière version : <%= version %></span>
+    </header>
 
-  <main class="container home-layout fade-in">
-    <section class="card home-card">
-      <h2>📦 Dernière Release</h2>
-      <p><strong>Version :</strong> <%= version %></p>
-      <p><strong>Date :</strong> <%= date %></p>
-      <p><strong>Téléchargements :</strong> <%= downloads %></p>
+    <!-- STRIP dernière release -->
+    <section class="release-strip">
+      <div class="strip-left">
+        <div class="version-badge"><%= version %></div>
+        <div class="strip-info">
+          <h3>Dernière release</h3>
+          <% if (last) { %>
+            <p class="notes"><%= (last.notes && last.notes.length) ? last.notes : "Aucune note fournie pour cette version." %></p>
+          <% } else { %>
+            <p class="notes">Aucune release disponible.</p>
+          <% } %>
+        </div>
+      </div>
+      <div class="strip-right">
+        <div class="metric">
+          <div class="metric-title">Date</div>
+          <div class="metric-value"><%= date %></div>
+        </div>
+        <div class="metric">
+          <div class="metric-title">Téléchargements</div>
+          <div class="metric-value"><%= downloads || 0 %></div>
+        </div>
+      </div>
     </section>
 
-    <section class="card home-card">
-      <h2>📊 Statistiques</h2>
-      <p>Total de bots : <%= totalBots %></p>
-      <p>À jour : <%= upToDate %></p>
-      <p>Obsolètes : <%= outdated %></p>
-    </section>
+    <!-- Deux tuiles centrées et espacées -->
+    <section class="home-tiles">
+      <div class="tile">
+        <h2>Statistiques</h2>
+        <p>Total de bots : <strong><%= totalBots %></strong></p>
+        <p>À jour : <strong><%= upToDate %></strong></p>
+        <p>Obsolètes : <strong><%= outdated %></strong></p>
+      </div>
 
-    <section class="card home-card">
-      <h2>⚙️ Informations</h2>
-      <p>Serveur actif : ✅</p>
-      <p>Dernière mise à jour : <%= new Date().toLocaleString("fr-FR") %></p>
-      <p>Panel : en ligne</p>
+      <div class="tile">
+        <h2>Accès</h2>
+        <% if (user) { %>
+          <p>Connecté en tant que : <strong><%= user.username %></strong></p>
+          <a href="/dashboard" class="btn primary">Aller au Dashboard</a>
+        <% } else { %>
+          <p>Connecte-toi pour gérer les versions.</p>
+          <a href="/login" class="btn primary">Connexion Discord</a>
+        <% } %>
+      </div>
     </section>
   </main>
 
-  <footer class="footer">
-    <p>© 2025 — Bot Updates Panel</p>
-  </footer>
+  <footer class="footer">© <%= new Date().getFullYear() %> — Bot Updates Panel</footer>
 </body>
 </html>

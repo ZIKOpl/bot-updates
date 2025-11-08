@@ -1,440 +1,150 @@
-/* ============================
-   ⚡ Thème AURA 2025 by ZIKO
-============================ */
-
-:root {
-  --bg: #050811;
-  --bg-card: rgba(20, 25, 38, 0.85);
-  --accent: #6c8cff;
-  --accent-glow: #8ca8ff;
-  --success: #4caf50;
-  --error: #ff5252;
-  --text: #f2f5fb;
-  --muted: #99a1b8;
-  --border: rgba(255, 255, 255, 0.06);
-  --radius: 16px;
-  --transition: 0.3s ease;
+/* =============== AURA 2025 (révisé) =============== */
+:root{
+  --bg:#050811;
+  --bg-card:rgba(20,25,38,.85);
+  --accent:#6c8cff;
+  --accent-glow:#8ca8ff;
+  --success:#4caf50;
+  --error:#ff5252;
+  --text:#f2f5fb;
+  --muted:#99a1b8;
+  --border:rgba(255,255,255,.06);
+  --radius:16px;
+  --transition:.3s ease;
 }
-
-/* ============================
-   🌌 Fond animé AURA
-============================ */
-
-body {
-  margin: 0;
-  color: var(--text);
-  font-family: "Inter", "Poppins", sans-serif;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  overflow-x: hidden;
-  background: radial-gradient(circle at 25% 25%, #0d1117, #050811 70%);
-  position: relative;
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  color:var(--text);
+  font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;
+  min-height:100vh;
+  background: radial-gradient(circle at 20% 20%, #0d1117 0%, #050811 60%);
+  position:relative;
+  overflow-x:hidden;
 }
-
-/* Lumières mouvantes */
-body::before,
-body::after {
-  content: "";
-  position: fixed;
-  width: 500px;
-  height: 500px;
-  border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.25;
-  z-index: 0;
-  animation: aurafloat 15s infinite alternate ease-in-out;
+body::before,body::after{
+  content:"";
+  position:fixed; width:520px; height:520px; border-radius:50%;
+  filter:blur(120px); opacity:.25; z-index:0; animation:aurafloat 15s infinite alternate ease-in-out;
 }
-body::before {
-  background: #5d7cff;
-  top: -150px;
-  left: -150px;
+body::before{background:#5d7cff; top:-150px; left:-150px}
+body::after{background:#00ffff; bottom:-150px; right:-150px; animation-delay:6s}
+@keyframes aurafloat{from{transform:translateY(0) scale(1)} to{transform:translateY(40px) scale(1.2)}}
+
+/* =============== NAV =============== */
+.nav{
+  position:sticky; top:0; z-index:20;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 22px; background:rgba(15,20,35,.7);
+  border-bottom:1px solid var(--border); backdrop-filter:blur(12px);
+  box-shadow:0 0 20px rgba(108,140,255,.15);
 }
-body::after {
-  background: #0ff;
-  bottom: -150px;
-  right: -150px;
-  animation-delay: 6s;
+.brand{display:flex;align-items:center;gap:.6rem;font-weight:600}
+.logo-dot{width:22px;height:22px;border-radius:6px;background:var(--accent);box-shadow:0 0 16px var(--accent)}
+.nav-right{display:flex;align-items:center;gap:14px}
+.logo-right{display:flex;align-items:center;gap:.6rem;padding:.3rem .6rem;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+.logo-right img{width:22px;height:22px;border-radius:6px;object-fit:cover}
+.logo-right span{font-weight:700; letter-spacing:.3px}
+
+/* =============== BUTTONS =============== */
+.btn{
+  padding:.6rem 1.1rem; border-radius:var(--radius);
+  color:var(--text); text-decoration:none; cursor:pointer;
+  border:1px solid var(--border); background:rgba(255,255,255,.03);
+  transition:var(--transition); display:inline-flex; align-items:center; justify-content:center;
 }
+.btn:hover{transform:translateY(-2px); box-shadow:0 0 15px rgba(255,255,255,.1)}
+.btn.primary{background:linear-gradient(135deg,var(--accent),#4c6fff); border:none; box-shadow:0 0 20px rgba(108,140,255,.3)}
+.btn.primary:hover{box-shadow:0 0 30px rgba(108,140,255,.5)}
+.btn.danger{background:linear-gradient(135deg,#ff5252,#ff7a7a); border:none; box-shadow:0 0 20px rgba(255,82,82,.4)}
+.btn.danger:hover{box-shadow:0 0 35px rgba(255,82,82,.6)}
 
-@keyframes aurafloat {
-  0% {
-    transform: translateY(0) scale(1);
-    opacity: 0.25;
-  }
-  100% {
-    transform: translateY(40px) scale(1.2);
-    opacity: 0.35;
-  }
+/* =============== LAYOUT =============== */
+.container{max-width:1200px; margin:0 auto; padding:0 24px; position:relative; z-index:1}
+.hero{text-align:center; margin:64px 0 36px}
+.hero h1{
+  margin:0 0 10px; font-size:42px; font-weight:800;
+  background:linear-gradient(90deg,var(--accent),#7aa8ff);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  text-shadow:0 0 22px rgba(108,140,255,.3);
 }
+.hero p{color:var(--muted)}
+.version-pill{display:inline-block; margin-top:14px; padding:8px 14px; border-radius:999px; background:linear-gradient(90deg,var(--accent),#4c6fff); box-shadow:0 0 16px rgba(108,140,255,.4)}
 
-/* ============================
-   🔝 Barre de navigation
-============================ */
-
-.nav {
-  background: rgba(15, 20, 35, 0.7);
-  border-bottom: 1px solid var(--border);
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  backdrop-filter: blur(12px);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  box-shadow: 0 0 20px rgba(108, 140, 255, 0.15);
+/* =============== STRIP release =============== */
+.release-strip{
+  margin:28px auto 40px; padding:18px 20px; border-radius:18px;
+  background:rgba(255,255,255,.04); border:1px solid var(--border);
+  backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:space-between; gap:16px;
 }
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: var(--text);
+.strip-left{display:flex; align-items:center; gap:16px; flex:1}
+.version-badge{
+  min-width:72px; height:72px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-weight:800;
+  background:linear-gradient(135deg,var(--accent),#4c6fff); box-shadow:0 0 22px rgba(108,140,255,.45)
 }
+.strip-info h3{margin:0 0 6px}
+.strip-info .notes{margin:0; color:var(--muted)}
+.strip-right{display:flex; gap:16px}
+.metric{min-width:180px; background:rgba(255,255,255,.04); border:1px solid var(--border); padding:12px 14px; border-radius:14px}
+.metric-title{color:var(--muted); font-size:12px}
+.metric-value{font-weight:700; margin-top:4px}
 
-.logo {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: var(--accent);
-  box-shadow: 0 0 20px var(--accent);
-  animation: glowPulse 3s infinite ease-in-out;
+/* =============== home tiles =============== */
+.home-tiles{display:flex; flex-wrap:wrap; gap:22px; justify-content:center; padding-bottom:64px}
+.tile{
+  flex:1 1 340px; max-width:420px; padding:22px; border-radius:18px;
+  background:rgba(255,255,255,.04); border:1px solid var(--border);
+  backdrop-filter:blur(10px); box-shadow:0 0 20px rgba(108,140,255,.12);
 }
+.tile h2{margin-top:0; color:var(--accent-glow); text-shadow:0 0 10px rgba(108,140,255,.3)}
+.muted{color:var(--muted)}
 
-@keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 15px var(--accent); }
-  50% { box-shadow: 0 0 30px var(--accent-glow); }
+/* =============== cards / dashboard =============== */
+.dashboard-flex{display:flex; gap:22px; flex-wrap:wrap; justify-content:center; margin-bottom:60px}
+.card{
+  flex:1; min-width:360px; padding:22px; border-radius:18px;
+  background:rgba(255,255,255,.04); border:1px solid var(--border); backdrop-filter:blur(10px);
+  box-shadow:0 0 20px rgba(108,140,255,.12);
 }
+.upload-card{max-width:620px}
+.timeline-card{max-width:520px}
+.card h2{margin-top:0; color:var(--accent-glow); text-shadow:0 0 10px rgba(108,140,255,.3)}
 
-.actions a {
-  margin-left: 10px;
+/* =============== inputs / dropzone =============== */
+.input{
+  width:100%; padding:.7rem .9rem; border-radius:12px; border:1px solid var(--border);
+  background:rgba(255,255,255,.05); color:var(--text); outline:none; transition:var(--transition); margin-bottom:12px;
 }
+.input:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(108,140,255,.15)}
+.textarea{resize:vertical}
 
-/* ============================
-   ✨ Boutons
-============================ */
-
-.btn {
-  padding: 0.6rem 1.2rem;
-  border-radius: var(--radius);
-  color: var(--text);
-  font-weight: 500;
-  text-decoration: none;
-  transition: var(--transition);
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(6px);
-  cursor: pointer;
+.drop-zone{
+  border:2px dashed var(--accent); border-radius:14px; padding:26px; text-align:center;
+  background:rgba(108,140,255,.05); color:var(--muted); cursor:pointer; transition:var(--transition); margin-bottom:14px;
 }
+.drop-zone.hover{background:rgba(108,140,255,.12); color:#e5ecff; border-color:var(--accent-glow); box-shadow:0 0 18px rgba(108,140,255,.35)}
 
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+/* =============== timeline =============== */
+.timeline{list-style:none; padding-left:14px; border-left:2px solid var(--accent); margin:14px 0 0}
+.timeline li{position:relative; margin-bottom:14px}
+.timeline .dot{position:absolute; left:-12px; top:4px; width:10px; height:10px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent)}
+.version-label{font-weight:700; color:var(--accent-glow)}
+
+/* =============== footer / forbidden =============== */
+.footer{
+  margin-top:auto; text-align:center; padding:22px 0;
+  border-top:1px solid var(--border); background:rgba(10,15,25,.65); color:var(--muted); backdrop-filter:blur(10px)
 }
+.forbidden{height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center}
+.forbidden .icon{font-size:42px}
 
-.btn.primary {
-  background: linear-gradient(135deg, var(--accent), #4c6fff);
-  border: none;
-  box-shadow: 0 0 20px rgba(108, 140, 255, 0.3);
+/* =============== responsive =============== */
+@media (max-width:900px){
+  .release-strip{flex-direction:column; align-items:stretch}
+  .strip-right{justify-content:space-between}
 }
-
-.btn.primary:hover {
-  box-shadow: 0 0 30px rgba(108, 140, 255, 0.5);
-}
-
-.btn.danger {
-  background: linear-gradient(135deg, #ff5252, #ff7a7a);
-  border: none;
-  box-shadow: 0 0 20px rgba(255, 82, 82, 0.4);
-}
-
-.btn.danger:hover {
-  box-shadow: 0 0 35px rgba(255, 82, 82, 0.6);
-}
-
-/* ============================
-   🌠 Contenu principal
-============================ */
-
-.container {
-  flex: 1;
-  max-width: 1200px;
-  margin: 3rem auto;
-  padding: 0 2rem 4rem 2rem;
-  z-index: 1;
-  position: relative;
-}
-
-/* ============================
-   🏠 Page d’accueil améliorée
-============================ */
-
-.hero {
-  text-align: center;
-  margin-top: 5rem;
-  margin-bottom: 5rem;
-  padding: 0 1rem;
-}
-
-.hero h1 {
-  font-size: 2.6rem;
-  font-weight: 700;
-  background: linear-gradient(90deg, var(--accent), #7aa8ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 25px rgba(108, 140, 255, 0.3);
-  margin-bottom: 1rem;
-}
-
-.hero p {
-  font-size: 1.1rem;
-  color: var(--muted);
-  max-width: 700px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-.version-pill {
-  display: inline-block;
-  margin-top: 1.5rem;
-  padding: 0.5rem 1.2rem;
-  border-radius: 25px;
-  font-weight: 600;
-  color: white;
-  background: linear-gradient(135deg, var(--accent), #4c6fff);
-  box-shadow: 0 0 20px rgba(108, 140, 255, 0.4);
-}
-
-/* ============================
-   💠 Layout d’accueil
-============================ */
-
-.home-layout {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 3rem;
-  margin-top: 2rem;
-  padding-bottom: 6rem;
-}
-
-.home-card {
-  flex: 1 1 320px;
-  max-width: 360px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  padding: 2.2rem 2rem;
-  text-align: center;
-  box-shadow: 0 0 25px rgba(108, 140, 255, 0.1);
-  transition: all 0.35s ease;
-  backdrop-filter: blur(10px);
-}
-
-.home-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 0 45px rgba(108, 140, 255, 0.3);
-}
-
-.home-card h2 {
-  margin-bottom: 1.4rem;
-  color: var(--accent-glow);
-  font-weight: 600;
-  text-shadow: 0 0 12px rgba(108, 140, 255, 0.3);
-}
-
-.home-card p {
-  margin-bottom: 0.5rem;
-  color: var(--text);
-  line-height: 1.5;
-}
-
-/* ============================
-   📤 Upload Section
-============================ */
-
-.drop-zone {
-  border: 2px dashed var(--accent);
-  border-radius: var(--radius);
-  padding: 2rem;
-  text-align: center;
-  background: rgba(108, 140, 255, 0.04);
-  color: var(--muted);
-  cursor: pointer;
-  transition: background var(--transition), border-color var(--transition);
-}
-
-.drop-zone.hover {
-  background: rgba(108, 140, 255, 0.1);
-  border-color: var(--accent-glow);
-  color: var(--accent-glow);
-  box-shadow: 0 0 20px rgba(108, 140, 255, 0.3);
-}
-
-/* ============================
-   📜 Timeline
-============================ */
-
-.timeline {
-  list-style: none;
-  margin: 1.5rem 0;
-  padding: 0;
-  border-left: 2px solid var(--accent);
-  padding-left: 1rem;
-}
-
-.timeline li {
-  position: relative;
-  margin-bottom: 1.5rem;
-}
-
-.timeline li .dot {
-  position: absolute;
-  left: -10px;
-  top: 4px;
-  width: 10px;
-  height: 10px;
-  background: var(--accent);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--accent);
-}
-
-.timeline-content {
-  margin-left: 0.8rem;
-}
-
-.version-label {
-  font-weight: 600;
-  color: var(--accent-glow);
-}
-
-/* ============================
-   ⚙️ Footer
-============================ */
-
-.footer {
-  margin-top: auto;
-  padding: 2.5rem 0;
-  border-top: 1px solid var(--border);
-  background: rgba(10, 15, 25, 0.7);
-  color: var(--muted);
-  text-align: center;
-  font-size: 0.95rem;
-}
-
-/* ============================
-   ✨ Animations
-============================ */
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.fade-in {
-  animation: fadeUp 0.8s ease both;
-}
-
-/* ============================
-   📱 Responsive
-============================ */
-
-@media (max-width: 850px) {
-  .home-layout {
-    gap: 2rem;
-  }
-
-  .hero {
-    margin-top: 3rem;
-    margin-bottom: 3rem;
-  }
-
-  .hero h1 {
-    font-size: 2.1rem;
-  }
-
-  .home-card {
-    padding: 1.6rem;
-  }
-}
-  /* ============================
-   🧠 Correction Upload Dashboard
-============================ */
-
-.upload-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.upload-form input[type="text"] {
-  display: block;
-  width: 100%;
-  padding: 0.7rem 1rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text);
-  font-size: 0.95rem;
-  transition: border-color var(--transition), box-shadow var(--transition);
-}
-
-.upload-form input[type="text"]:focus {
-  outline: none;
-  border-color: var(--accent-glow);
-  box-shadow: 0 0 10px rgba(108, 140, 255, 0.3);
-}
-
-.drop-zone {
-  border: 2px dashed var(--accent);
-  border-radius: var(--radius);
-  padding: 2rem;
-  text-align: center;
-  transition: all var(--transition);
-  background: rgba(108, 140, 255, 0.04);
-  color: var(--muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 120px;
-}
-
-.drop-zone p {
-  margin: 0;
-  font-size: 0.95rem;
-  color: var(--muted);
-}
-
-.drop-zone.hover {
-  background: rgba(108, 140, 255, 0.1);
-  border-color: var(--accent-glow);
-  color: var(--accent-glow);
-  box-shadow: 0 0 20px rgba(108, 140, 255, 0.3);
-}
-
-/* ============================
-   💫 Animation séquentielle
-============================ */
-
-.fade-seq {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeSeq 0.7s ease forwards;
-}
-
-.fade-seq:nth-child(1) { animation-delay: 0.1s; }
-.fade-seq:nth-child(2) { animation-delay: 0.3s; }
-.fade-seq:nth-child(3) { animation-delay: 0.5s; }
-.fade-seq:nth-child(4) { animation-delay: 0.7s; }
-
-@keyframes fadeSeq {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@media (max-width:700px){
+  .nav{flex-direction:column; align-items:flex-start; gap:10px}
+  .metric{min-width:140px}
 }

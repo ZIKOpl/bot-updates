@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
   <title>Accès refusé</title>
-  <link rel="stylesheet" href="/style.css?v=2">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <div class="forbidden">
-    <div class="icon">🚫</div>
+  <main class="forbidden">
+    <div class="icon">⛔</div>
     <h1>Accès refusé</h1>
-    <p>Tu n’as pas la permission d’accéder à cette page.</p>
-    <a href="/" class="btn ghost">Retour</a>
-  </div>
+    <p>Tu dois être le propriétaire pour accéder au dashboard.</p>
+    <div style="margin-top:1rem">
+      <% if (!user) { %>
+        <a class="btn primary" href="/login">Connexion Discord</a>
+      <% } %>
+      <a class="btn" href="/">Retour à l’accueil</a>
+    </div>
+  </main>
 </body>
 </html>

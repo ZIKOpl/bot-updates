@@ -1,80 +1,103 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard | Bot Updates</title>
-  <link rel="stylesheet" href="/style.css?v=3">
+  <meta charset="utf-8" />
+  <title>Dashboard • Bot Updates</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
+  <!-- NAV -->
   <nav class="nav">
-    <div class="brand"><div class="logo"></div><span>Dashboard</span></div>
-    <div class="actions">
-      <a href="/" class="btn ghost">Accueil</a>
-      <a href="/logout" class="btn danger">Déconnexion</a>
+    <div class="brand">
+      <span class="logo-dot"></span>
+      <span>Dashboard</span>
+    </div>
+    <div class="nav-right">
+      <div class="logo-right">
+        <img src="/logo.png" alt="HOME UPDATE" />
+        <span>HOME UPDATE</span>
+      </div>
+      <div class="actions">
+        <a class="btn" href="/">Accueil</a>
+        <a class="btn danger" href="/logout">Déconnexion</a>
+      </div>
     </div>
   </nav>
 
-  <section class="hero fade-in">
-    <h1>🧩 Panneau de gestion</h1>
-    <p>Gère les versions et les mises à jour de ton bot en toute simplicité.</p>
-  </section>
+  <main class="container">
+    <header class="hero">
+      <h1>Panneau de gestion</h1>
+      <p>Gère les versions et les mises à jour de ton bot en toute simplicité.</p>
+    </header>
 
-    <div class="container dashboard-flex">
-    <!-- Upload Section -->
-    <div class="upload-card glow-card fade-seq">
-      <h2>📤 Nouvelle Release</h2>
-      <form class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
-        <input type="text" name="version" placeholder="Numéro de version (ex : 2.1)" required>
-        <div class="drop-zone" id="dropZone">
-          <p id="uploadText">Glisse ton fichier .zip ici ou clique pour le choisir</p>
-          <input type="file" name="zip" accept=".zip" hidden required>
-        </div>
-        <button type="submit" class="btn primary">Uploader</button>
-      </form>
-    </div>
+    <section class="dashboard-flex">
+      <!-- Upload card -->
+      <div class="card upload-card">
+        <h2>📥 Nouvelle Release</h2>
+        <form id="uploadForm" class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+          <input class="input" type="text" name="version" placeholder="Numéro de version (ex : 2.6)" required />
+          <textarea class="input textarea" name="notes" rows="3" placeholder="Notes de version (changements, corrections…)"></textarea>
 
-    <!-- Timeline Section -->
-    <div class="timeline-card glow-card fade-seq">
-      <h2>🕓 Historique des versions</h2>
-      <% if (releases.length === 0) { %>
-        <p class="empty">Aucune release disponible</p>
-      <% } else { %>
-        <ul class="timeline">
-          <% releases.forEach(r => { %>
-            <li>
-              <div class="dot"></div>
-              <div class="timeline-content">
-                <span class="version-label"><%= r.version %></span>
-                <small><%= new Date(r.createdAt).toLocaleString("fr-FR") %></small>
-              </div>
-            </li>
-          <% }) %>
-        </ul>
-      <% } %>
-    </div>
-  </div>
+          <div id="dropZone" class="drop-zone">
+            <span id="uploadText">Glisse ton fichier .zip ici ou clique pour le choisir</span>
+            <input id="fileInput" type="file" name="zip" accept=".zip" hidden />
+          </div>
 
-  <footer class="footer">© 2025 — Bot Updates Panel</footer>
+          <button type="submit" class="btn primary">Uploader</button>
+        </form>
+      </div>
+
+      <!-- Timeline -->
+      <div class="card timeline-card">
+        <h2>🕒 Versions précédentes</h2>
+        <% if (releases.length === 0) { %>
+          <p class="muted">Aucune release disponible</p>
+        <% } else { %>
+          <ul class="timeline">
+            <% releases.forEach(r => { %>
+              <li>
+                <span class="dot"></span>
+                <div class="timeline-content">
+                  <div class="version-label"><%= r.version %></div>
+                  <div class="muted"><%= new Date(r.createdAt).toLocaleString("fr-FR", { dateStyle:"medium", timeStyle:"short" }) %></div>
+                  <% if (r.notes) { %><p class="muted" style="margin-top:6px"><%= r.notes %></p><% } %>
+                </div>
+              </li>
+            <% }) %>
+          </ul>
+        <% } %>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">© <%= new Date().getFullYear() %> — Bot Updates Panel</footer>
 
   <script>
-    const dropZone = document.getElementById("dropZone");
-    const fileInput = dropZone.querySelector("input[type=file]");
-    const uploadText = document.getElementById("uploadText");
+    // Drag & Drop + click
+    const drop = document.getElementById('dropZone');
+    const input = document.getElementById('fileInput');
+    const text = document.getElementById('uploadText');
+    const form = document.getElementById('uploadForm');
 
-    dropZone.addEventListener("click", () => fileInput.click());
-    dropZone.addEventListener("dragover", e => {
-      e.preventDefault(); dropZone.classList.add("hover");
+    drop.addEventListener('click', () => input.click());
+    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('hover'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('hover'));
+    drop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      drop.classList.remove('hover');
+      if (e.dataTransfer.files.length) {
+        input.files = e.dataTransfer.files;
+        text.textContent = 'Fichier sélectionné : ' + e.dataTransfer.files[0].name;
+      }
     });
-    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("hover"));
-    dropZone.addEventListener("drop", e => {
-      e.preventDefault(); dropZone.classList.remove("hover");
-      const file = e.dataTransfer.files[0];
-      fileInput.files = e.dataTransfer.files;
-      uploadText.textContent = "Fichier sélectionné : " + file.name;
+    input.addEventListener('change', () => {
+      if (input.files.length) text.textContent = 'Fichier sélectionné : ' + input.files[0].name;
     });
-    fileInput.addEventListener("change", e => {
-      const file = e.target.files[0];
-      if (file) uploadText.textContent = "Fichier sélectionné : " + file.name;
+
+    // Feedback submit
+    form.addEventListener('submit', () => {
+      text.textContent = 'Upload en cours…';
     });
   </script>
 </body>
