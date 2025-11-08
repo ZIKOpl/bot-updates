@@ -1,116 +1,79 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard • Mises à jour</title>
+  <meta charset="UTF-8">
+  <title>Dashboard - Mises à jour</title>
   <style>
     body {
       font-family: "Poppins", sans-serif;
-      background-color: #0e0e0e;
+      background: #0b0b0b;
       color: #fff;
       margin: 0;
       padding: 20px;
     }
-    h1 {
-      color: #ff3b3b;
-      text-align: center;
-      margin-bottom: 30px;
-    }
+    h1 { text-align: center; color: #ffaa33; }
     .section {
-      background: #191919;
-      border-radius: 15px;
+      background: #181818;
+      border-radius: 12px;
       padding: 25px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 15px rgba(255, 90, 0, 0.2);
+      margin-bottom: 25px;
+      box-shadow: 0 0 10px rgba(255, 136, 0, 0.3);
     }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    input[type="file"],
+    form { display: flex; gap: 10px; justify-content: center; }
     input[type="text"] {
       background: #111;
       border: 1px solid #333;
-      border-radius: 8px;
-      padding: 10px;
       color: #fff;
+      padding: 8px 10px;
+      border-radius: 8px;
     }
     button {
-      background: #ff8f00;
+      background: #ffaa33;
+      color: #000;
       border: none;
       border-radius: 8px;
-      padding: 10px;
-      color: #000;
-      font-weight: bold;
+      padding: 8px 14px;
       cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover {
-      background: #ffaa33;
     }
     table {
       width: 100%;
+      margin-top: 10px;
       border-collapse: collapse;
-      margin-top: 15px;
     }
     th, td {
-      padding: 8px;
       border-bottom: 1px solid #333;
+      padding: 8px;
       text-align: left;
     }
-    th {
-      color: #ffb84d;
-    }
-    .logout {
+    th { color: #ffaa33; }
+    a.logout {
+      color: #ffaa33;
+      text-decoration: none;
       position: absolute;
       top: 20px;
       right: 20px;
-      color: #ff8f00;
-      text-decoration: none;
-      font-size: 0.9em;
     }
   </style>
 </head>
 <body>
   <a href="/logout" class="logout">🚪 Déconnexion</a>
-  <h1>🛠️ Tableau de bord admin</h1>
+  <h1>🛠️ Tableau de bord</h1>
 
   <div class="section">
-    <h2>📤 Mettre en ligne une mise à jour</h2>
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-      <input type="file" name="updateZip" accept=".zip" required />
-      <input type="text" name="version" placeholder="Exemple : v2.1" required />
-      <button type="submit">Uploader</button>
+    <h2>⚙️ Version actuelle</h2>
+    <p>Version en ligne : <strong style="color:#00ffaa"><%= version %></strong></p>
+    <form method="POST" action="/setversion">
+      <input type="text" name="version" placeholder="Nouvelle version (ex: v2.1)" required>
+      <button type="submit">Mettre à jour</button>
     </form>
   </div>
 
   <div class="section">
-    <h2>📦 Versions disponibles</h2>
-    <% if (files.length === 0) { %>
-      <p>Aucun fichier pour l’instant.</p>
-    <% } else { %>
-      <table>
-        <tr>
-          <th>Nom du fichier</th>
-          <th>Téléchargement</th>
-        </tr>
-        <% files.forEach(f => { %>
-          <tr>
-            <td><%= f %></td>
-            <td><a href="/download/<%= f %>" style="color:#00ffaa">Télécharger</a></td>
-          </tr>
-        <% }) %>
-      </table>
-    <% } %>
-  </div>
-
-  <div class="section">
-    <h2>📊 Statistiques globales</h2>
-    <p>Version actuelle : <strong><%= version %></strong></p>
-    <p>Téléchargements totaux : <strong><%= stats.downloads %></strong></p>
-    <p>Bots enregistrés : <strong><%= Object.keys(stats.bots).length %></strong></p>
+    <h2>📊 Statistiques</h2>
+    <table>
+      <tr><th>Total téléchargements</th><td><%= stats.downloads %></td></tr>
+      <tr><th>Total bots enregistrés</th><td><%= Object.keys(stats.bots).length %></td></tr>
+    </table>
   </div>
 </body>
 </html>

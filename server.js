@@ -2,7 +2,6 @@ const express = require("express");
 const session = require("express-session");
 const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
-const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 
@@ -10,48 +9,31 @@ const app = express();
 
 /* ===================== CONFIG ===================== */
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || "/data/uploads";
-const STATS_FILE = path.join(UPLOAD_DIR, "stats.json");
-const VERSION_FILE = path.join(UPLOAD_DIR, "version.txt");
-
-const OWNER_ID = process.env.OWNER_ID; // Ton ID Discord
+const OWNER_ID = process.env.OWNER_ID; // ton ID Discord
 const SESSION_SECRET = process.env.SESSION_SECRET || "super_secret_session";
 const PORT = process.env.PORT || 3000;
+const GITHUB_USER = "ZIKOpl"; // ton compte GitHub
+const GITHUB_REPO = "bot-updates"; // nom du repo
 
-let currentVersion = process.env.INIT_VERSION || "v1";
-
-// Crée les dossiers nécessaires
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-
-/* ===================== CHARGEMENT VERSION ===================== */
-try {
-  if (fs.existsSync(VERSION_FILE)) {
-    currentVersion = fs.readFileSync(VERSION_FILE, "utf8").trim();
-    console.log(`📦 Version chargée depuis le disque : ${currentVersion}`);
-  } else {
-    fs.writeFileSync(VERSION_FILE, currentVersion, "utf8");
-    console.log(`💾 Fichier version.txt créé avec ${currentVersion}`);
-  }
-} catch (err) {
-  console.warn("⚠️ Impossible de lire ou écrire version.txt :", err);
+// version courante (modifiable dans le dashboard)
+const VERSION_FILE = path.join(__dirname, "version.txt");
+let currentVersion = process.env.CURRENT_VERSION || "v1";
+if (fs.existsSync(VERSION_FILE)) {
+  currentVersion = fs.readFileSync(VERSION_FILE, "utf8").trim();
 }
 
 /* ===================== STATS ===================== */
+const STATS_FILE = path.join(__dirname, "stats.json");
 let stats = { downloads: 0, bots: {} };
-try {
-  if (fs.existsSync(STATS_FILE)) {
-    stats = JSON.parse(fs.readFileSync(STATS_FILE, "utf8"));
-  }
-} catch {
-  stats = { downloads: 0, bots: {} };
+if (fs.existsSync(STATS_FILE)) {
+  stats = JSON.parse(fs.readFileSync(STATS_FILE, "utf8"));
 }
 
-/* ===================== AUTH ===================== */
+/* ===================== EXPRESS CONFIG ===================== */
 
 app.set("view engine", "ejs");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use(
   session({
     secret: SESSION_SECRET,
@@ -61,9 +43,10 @@ app.use(
   })
 );
 
+/* ===================== DISCORD AUTH ===================== */
+
 app.use(passport.initialize());
 app.use(passport.session());
-
 passport.serializeUser((u, done) => done(null, u));
 passport.deserializeUser((obj, done) => done(null, obj));
 
@@ -72,14 +55,13 @@ passport.use(
     {
       clientID: process.env.DISCORD_CLIENT_ID,
       clientSecret: process.env.DISCORD_CLIENT_SECRET,
-      callbackURL: process.env.CALLBACK_URL,
+      callbackURL: process.env.CALLBACK_URL, // ex: https://bot-updates.onrender.com/callback
       scope: ["identify"],
     },
     (accessToken, refreshToken, profile, done) => done(null, profile)
   )
 );
 
-const upload = multer({ dest: UPLOAD_DIR });
 function isOwner(req) {
   return req.user && req.user.id === OWNER_ID;
 }
@@ -96,7 +78,7 @@ app.get("/logout", (req, res) => {
   req.logout(() => res.redirect("/"));
 });
 
-/* ===================== PUBLIC PAGE ===================== */
+/* ===================== PAGE PUBLIQUE ===================== */
 
 app.get("/", (req, res) => {
   const totalBots = Object.keys(stats.bots).length;
@@ -115,36 +97,24 @@ app.get("/", (req, res) => {
   });
 });
 
-/* ===================== ADMIN DASHBOARD ===================== */
+/* ===================== DASHBOARD ===================== */
 
 app.get("/dashboard", (req, res) => {
   if (!isOwner(req)) return res.status(403).render("forbidden");
-
-  const files = fs.readdirSync(UPLOAD_DIR).filter((f) => f.endsWith(".zip"));
-  res.render("dashboard", { user: req.user, version: currentVersion, files, stats });
+  res.render("dashboard", { user: req.user, version: currentVersion, stats });
 });
 
-/* ===================== UPLOAD ===================== */
-
-app.post("/upload", upload.single("updateZip"), (req, res) => {
+app.post("/setversion", (req, res) => {
   if (!isOwner(req)) return res.status(403).send("Forbidden");
   const newVersion = (req.body.version || "").trim();
-  if (!req.file || !newVersion) return res.status(400).send("Version manquante ou fichier absent");
-
-  // Sécurisation du nom de version
-  const safeVersion = newVersion.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const target = path.join(UPLOAD_DIR, `${safeVersion}.zip`);
-  fs.renameSync(req.file.path, target);
-
-  // Mise à jour de la version
-  currentVersion = safeVersion;
+  if (!newVersion) return res.status(400).send("Version manquante");
+  currentVersion = newVersion;
   fs.writeFileSync(VERSION_FILE, currentVersion, "utf8");
-
-  console.log(`✅ Nouvelle version uploadée : ${currentVersion}`);
+  console.log(`✅ Version mise à jour : ${currentVersion}`);
   res.redirect("/dashboard");
 });
 
-/* ===================== API VERSION ===================== */
+/* ===================== API PUBLIQUE ===================== */
 
 app.get("/api/version", (req, res) => {
   const botId = req.query.bot_id || "unknown";
@@ -156,27 +126,20 @@ app.get("/api/version", (req, res) => {
     latestVersion: currentVersion,
     lastCheck: new Date().toISOString(),
   };
-
   fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2));
+
+  const downloadURL = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/releases/${currentVersion}/bot-${currentVersion}.zip`;
 
   res.json({
     version: currentVersion,
-    download: `https://cdn.jsdelivr.net/gh/ZIKOpl/bot-updates@main/releases/${currentVersion}/bot-${currentVersion}.zip`,
+    download: downloadURL,
     message: "Dernière version disponible",
   });
-});
-
-/* ===================== DOWNLOAD ===================== */
-
-app.get("/download/:file", (req, res) => {
-  const filePath = path.join(UPLOAD_DIR, req.params.file);
-  if (!fs.existsSync(filePath)) return res.status(404).send("Fichier introuvable");
-  res.download(filePath);
 });
 
 /* ===================== START ===================== */
 
 app.listen(PORT, () => {
-  console.log(`✅ Update site listening on port ${PORT}`);
+  console.log(`✅ Update site running on port ${PORT}`);
   console.log(`🌐 Version actuelle : ${currentVersion}`);
 });

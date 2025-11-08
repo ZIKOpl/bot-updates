@@ -6,113 +6,77 @@
   <title>Mises à jour du bot</title>
   <style>
     body {
-      margin: 0;
       font-family: "Poppins", sans-serif;
-      background-color: #0f0f0f;
-      color: #f5f5f5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 30px;
-    }
-    h1 {
-      color: #ff3b3b;
-      margin-bottom: 10px;
-      font-size: 2.4em;
-      letter-spacing: 1px;
-    }
-    h2 {
-      margin-top: 0;
-      color: #ff8f00;
+      background: #0e0e0e;
+      color: #fff;
+      text-align: center;
+      padding: 50px;
     }
     .card {
-      background: #1b1b1b;
-      border: 1px solid #222;
+      background: #161616;
       border-radius: 15px;
-      padding: 25px 35px;
-      margin: 20px 0;
+      padding: 30px;
+      margin: auto;
       width: 90%;
       max-width: 600px;
-      box-shadow: 0 0 20px rgba(255, 100, 0, 0.2);
+      box-shadow: 0 0 15px rgba(255, 90, 0, 0.2);
     }
+    h1 { color: #ff3b3b; }
+    h2 { color: #ffaa33; }
     .stats {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
       margin-top: 20px;
     }
     .stat {
-      background: #161616;
-      border-radius: 12px;
+      background: #1c1c1c;
       padding: 15px;
-      flex: 1;
-      margin: 0 5px;
-      text-align: center;
+      border-radius: 10px;
     }
-    .stat h3 {
-      margin: 5px 0;
-      font-size: 1.5em;
-      color: #ffa31a;
-    }
-    .stat span {
-      font-size: 0.9em;
-      color: #ccc;
-    }
-    .footer {
-      margin-top: auto;
-      padding: 15px;
-      font-size: 0.8em;
-      color: #888;
-    }
+    .stat h3 { color: #00ffaa; margin: 5px; }
     a.login {
-      color: #ff8f00;
+      display: inline-block;
+      margin-top: 20px;
+      color: #ffaa33;
       text-decoration: none;
-      font-weight: bold;
-      border: 1px solid #ff8f00;
-      padding: 8px 14px;
+      border: 1px solid #ffaa33;
       border-radius: 8px;
-      transition: 0.3s;
+      padding: 10px 20px;
     }
-    a.login:hover {
-      background: #ff8f00;
-      color: #000;
-    }
+    a.login:hover { background: #ffaa33; color: #000; }
   </style>
 </head>
 <body>
-  <h1>🚀 Système de mises à jour</h1>
   <div class="card">
-    <h2>Version actuelle : <span style="color:#00ff9f"><%= version %></span></h2>
-    <p>Bienvenue sur le service de mise à jour automatique de votre bot.</p>
-
+    <h1>🚀 Système de mise à jour</h1>
+    <h2>Version actuelle : <%= version %></h2>
     <div class="stats">
       <div class="stat">
         <h3><%= totalBots %></h3>
-        <span>Bots connectés</span>
+        <p>Bots enregistrés</p>
       </div>
       <div class="stat">
         <h3><%= upToDate %></h3>
-        <span>À jour</span>
+        <p>À jour</p>
       </div>
       <div class="stat">
         <h3><%= outdated %></h3>
-        <span>Non à jour</span>
+        <p>Non à jour</p>
       </div>
       <div class="stat">
         <h3><%= downloads %></h3>
-        <span>Téléchargements</span>
+        <p>Téléchargements</p>
       </div>
     </div>
   </div>
 
   <% if (!user) { %>
-  <a href="/login" class="login">🔑 Connexion Discord (Admin)</a>
+  <a href="/login" class="login">Connexion Discord (Admin)</a>
   <% } else { %>
-  <a href="/dashboard" class="login">⚙️ Aller au tableau de bord</a>
+  <a href="/dashboard" class="login">Aller au tableau de bord</a>
   <% } %>
 
-  <div class="footer">
-    © <%= new Date().getFullYear() %> • Système de mise à jour ZIKO
-  </div>
+  <p style="margin-top:40px; color:#888;">© <%= new Date().getFullYear() %> • Système de mise à jour by ZIKO</p>
 </body>
 </html>
