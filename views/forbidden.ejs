@@ -2,49 +2,43 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Accès refusé</title>
   <style>
     body {
-      background-color: #0f1116;
+      background: linear-gradient(135deg, #1a1a2e, #161621);
       color: white;
-      font-family: "Inter", sans-serif;
+      font-family: "Poppins", sans-serif;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
-      margin: 0;
       text-align: center;
     }
-    .box {
-      background: #1a1d23;
-      padding: 40px;
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
       border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
-      width: 90%;
-      max-width: 400px;
+      padding: 40px;
     }
-    h2 { color: #e74c3c; }
-    p { color: #ccc; }
-    button {
+    a {
+      display: inline-block;
+      margin-top: 15px;
       background: #5865f2;
       color: white;
-      border: none;
-      border-radius: 8px;
       padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: 0.2s;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
     }
-    button:hover { background: #4752c4; }
+    a:hover { background: #4752c4; }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h2>🚫 Accès refusé</h2>
-    <p>Seul le propriétaire du bot peut accéder à ce tableau de bord.</p>
-    <a href="/"><button>Retour à l'accueil</button></a>
+  <div class="card">
+    <h1>🚫 Accès refusé</h1>
+    <p>Vous n’avez pas les permissions pour accéder à ce panneau.</p>
+    <a href="/logout">Changer de compte</a>
   </div>
 </body>
 </html>

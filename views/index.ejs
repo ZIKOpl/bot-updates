@@ -2,63 +2,174 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>🤖 Bot Updates</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bot Updates - Accueil</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      background-color: #0f1116;
-      color: #fff;
-      font-family: "Inter", sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
       margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: radial-gradient(circle at top left, #1a1c2e, #0b0c14);
+      color: #fff;
     }
-    .container {
-      background: #1a1d23;
-      padding: 40px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
-      text-align: center;
-      width: 90%;
-      max-width: 450px;
-      animation: fadeIn 0.4s ease-in-out;
+    header {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    h1 { color: #7289da; margin-bottom: 10px; }
-    p { color: #ccc; }
-    button {
-      background: #5865f2;
-      color: white;
+    .btn {
+      padding: 8px 16px;
+      border-radius: 10px;
       border: none;
-      border-radius: 8px;
-      padding: 10px 20px;
-      font-size: 16px;
-      margin: 10px;
       cursor: pointer;
+      font-weight: 600;
       transition: 0.2s;
     }
-    button:hover { background: #4752c4; }
-    .version { margin: 10px 0; font-weight: 600; }
-    a { text-decoration: none; }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .btn-primary {
+      background: #5865f2;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #4752c4;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .stat-box {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    canvas {
+      margin-top: 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #888;
+    }
+    .denied {
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+    .denied h2 {
+      color: #ff5a5a;
+      font-size: 1.5rem;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🤖 Bot Updates</h1>
-    <p class="version">Version actuelle : <strong><%= version %></strong></p>
+  <header>
+    <div>
+      <h1>🤖 Bot Updates</h1>
+    </div>
+    <div>
+      <% if (!user) { %>
+        <a href="/login" class="btn btn-primary">Se connecter avec Discord</a>
+      <% } else { %>
+        <a href="/dashboard" class="btn btn-primary">Accéder au dashboard</a>
+      <% } %>
+    </div>
+  </header>
 
-    <% if (user) { %>
-      <p>Connecté en tant que <strong><%= user.username %></strong></p>
-      <a href="/dashboard"><button>Accéder au dashboard</button></a><br>
-      <a href="/logout"><button style="background:#e74c3c;">Se déconnecter</button></a>
+  <div class="container">
+    <div class="card">
+      <h2>Statistiques globales</h2>
+      <div class="stats">
+        <div class="stat-box">
+          <h3><%= version %></h3>
+          <p>Version actuelle</p>
+        </div>
+        <div class="stat-box">
+          <h3><%= totalBots %></h3>
+          <p>Bots enregistrés</p>
+        </div>
+        <div class="stat-box">
+          <h3><%= upToDate %></h3>
+          <p>À jour</p>
+        </div>
+        <div class="stat-box">
+          <h3><%= outdated %></h3>
+          <p>En retard</p>
+        </div>
+      </div>
+
+      <canvas id="publicChart" height="120"></canvas>
+    </div>
+
+    <% if (!user) { %>
+      <div class="card denied">
+        <h2>🚫 Accès réservé aux administrateurs</h2>
+        <p>Connectez-vous pour accéder au dashboard.</p>
+      </div>
+    <% } else if (!isOwner) { %>
+      <div class="card denied">
+        <h2>❌ Accès refusé</h2>
+        <p>Votre compte Discord n’a pas la permission d’accéder au panneau d’administration.</p>
+        <a href="/logout" class="btn btn-primary">Changer de compte</a>
+      </div>
     <% } else { %>
-      <a href="/login"><button>Connexion via Discord</button></a>
+      <div class="card">
+        <h3>Bienvenue <%= user.username %> !</h3>
+        <p>Vous avez accès au <a href="/dashboard">dashboard</a>.</p>
+      </div>
     <% } %>
   </div>
+
+  <footer>© 2025 — Bot Update System</footer>
+
+  <script>
+    const labels = JSON.parse('<%- chartLabels %>');
+    const dataVals = JSON.parse('<%- chartValues %>');
+
+    new Chart(document.getElementById('publicChart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Mises à jour par jour',
+          data: dataVals,
+          borderColor: '#5865F2',
+          backgroundColor: 'rgba(88, 101, 242, 0.3)',
+          tension: 0.3,
+          fill: true,
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.1)' } },
+          y: { grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true }
+        }
+      }
+    });
+  </script>
 </body>
 </html>
