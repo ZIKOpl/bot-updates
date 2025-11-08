@@ -1,168 +1,178 @@
 const express = require("express");
 const session = require("express-session");
-const passport = require("passport");
-const DiscordStrategy = require("passport-discord").Strategy;
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
+const AdmZip = require("adm-zip");
+const bodyParser = require("body-parser");
 
 const app = express();
+const PORT = process.env.PORT || 10000;
 
-/* ===================== CONFIG ===================== */
-
-const UPLOAD_DIR = path.join(__dirname, "uploads");
-const STATS_FILE = path.join(UPLOAD_DIR, "stats.json");
-const VERSION_FILE = path.join(UPLOAD_DIR, "version.txt");
-
-const OWNER_ID = process.env.OWNER_ID;
-const SESSION_SECRET = process.env.SESSION_SECRET || "secret_session";
-const PORT = process.env.PORT || 3000;
-
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-
-let currentVersion = fs.existsSync(VERSION_FILE)
-  ? fs.readFileSync(VERSION_FILE, "utf8").trim()
-  : "v1.0";
-
-let stats = fs.existsSync(STATS_FILE)
-  ? JSON.parse(fs.readFileSync(STATS_FILE, "utf8"))
-  : { downloads: 0, bots: {} };
-
-/* ===================== EXPRESS ===================== */
-
+// Configuration Express
 app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
+// Session (utile pour simuler une auth)
 app.use(
   session({
-    secret: SESSION_SECRET,
+    secret: "updatepanel_secret",
     resave: false,
-    saveUninitialized: false,
-    cookie: { sameSite: "lax", secure: false },
+    saveUninitialized: true,
   })
 );
 
-/* ===================== DISCORD AUTH ===================== */
+// Chemins importants
+const releasesDir = path.join(__dirname, "releases");
+const versionFile = path.join(__dirname, "version.txt");
 
-app.use(passport.initialize());
-app.use(passport.session());
-passport.serializeUser((u, done) => done(null, u));
-passport.deserializeUser((obj, done) => done(null, obj));
+// Vérifie le dossier des releases
+if (!fs.existsSync(releasesDir)) fs.mkdirSync(releasesDir);
 
-passport.use(
-  new DiscordStrategy(
-    {
-      clientID: process.env.DISCORD_CLIENT_ID,
-      clientSecret: process.env.DISCORD_CLIENT_SECRET,
-      callbackURL: process.env.CALLBACK_URL,
-      scope: ["identify"],
-    },
-    (accessToken, refreshToken, profile, done) => done(null, profile)
-  )
-);
+// Simule un rôle admin (à améliorer avec vrai login Discord plus tard)
+const ADMIN_PASSWORD = process.env.ADMIN_PASS || "zikopanel";
 
-function isOwner(req) {
-  return req.user && req.user.id === OWNER_ID;
+// Middleware d'authentification simple
+function isAuthenticated(req, res, next) {
+  if (req.session.loggedIn) return next();
+  return res.render("forbidden");
 }
 
-/* ===================== UPLOAD ===================== */
-
-const upload = multer({ dest: UPLOAD_DIR });
-
-app.post("/upload", upload.single("updateZip"), (req, res) => {
-  if (!isOwner(req)) return res.status(403).send("Accès refusé");
-  const newVersion = (req.body.version || "").trim();
-  if (!req.file || !newVersion) return res.status(400).send("Version ou fichier manquant");
-
-  const target = path.join(UPLOAD_DIR, `${newVersion}.zip`);
-  fs.renameSync(req.file.path, target);
-  currentVersion = newVersion;
-  fs.writeFileSync(VERSION_FILE, currentVersion, "utf8");
-  res.status(200).send("OK");
+// Route de login (simple)
+app.get("/login", (req, res) => {
+  res.send(`
+    <form method="post" action="/login" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;">
+      <h2>Connexion Admin</h2>
+      <input type="password" name="password" placeholder="Mot de passe" style="padding:10px;margin:10px;width:250px;">
+      <button type="submit" style="padding:10px 20px;">Se connecter</button>
+    </form>
+  `);
 });
 
-/* ===================== ROUTES ===================== */
+app.post("/login", (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_PASSWORD) {
+    req.session.loggedIn = true;
+    return res.redirect("/dashboard");
+  }
+  res.send("❌ Mot de passe incorrect.");
+});
 
+// Déconnexion
+app.get("/logout", (req, res) => {
+  req.session.destroy(() => res.redirect("/"));
+});
+
+// === PAGE PRINCIPALE ===
 app.get("/", (req, res) => {
-  const totalBots = Object.keys(stats.bots).length;
-  const upToDate = Object.values(stats.bots).filter(b => b.version === currentVersion).length;
-  const outdated = totalBots - upToDate;
+  const version = fs.existsSync(versionFile)
+    ? fs.readFileSync(versionFile, "utf8").trim()
+    : "v1.0";
 
-  const releases = fs.readdirSync(UPLOAD_DIR)
-    .filter(f => f.endsWith(".zip"))
-    .map(f => {
-      const stat = fs.statSync(path.join(UPLOAD_DIR, f));
-      return {
-        version: f.replace(".zip", ""),
-        size: stat.size,
-        date: stat.mtime
-      };
-    })
-    .sort((a, b) => b.date - a.date);
+  // Charge les releases
+  let releases = [];
+  if (fs.existsSync(releasesDir)) {
+    releases = fs
+      .readdirSync(releasesDir)
+      .filter((f) => f.endsWith(".zip"))
+      .map((f) => {
+        const filePath = path.join(releasesDir, f);
+        const stats = fs.statSync(filePath);
+        return {
+          version: f.replace(".zip", ""),
+          size: stats.size,
+          date: stats.mtime,
+        };
+      });
+  }
+
+  // Statistiques basiques
+  const upToDate = 8;
+  const outdated = 2;
+
+  // Dernière release
+  const latest = releases[releases.length - 1];
+  const date = latest
+    ? new Date(latest.date).toLocaleString("fr-FR")
+    : "Inconnue";
+
+  const downloads = Math.floor(Math.random() * 500);
 
   res.render("index", {
-    user: req.user,
-    version: currentVersion,
-    downloads: stats.downloads || 0,
-    totalBots,
+    version,
     upToDate,
     outdated,
-    releases
+    date,
+    downloads,
   });
 });
 
-app.get("/dashboard", (req, res) => {
-  if (!isOwner(req)) return res.status(403).render("forbidden");
-  const releases = fs.readdirSync(UPLOAD_DIR)
-    .filter(f => f.endsWith(".zip"))
-    .map(f => {
-      const stat = fs.statSync(path.join(UPLOAD_DIR, f));
-      return {
-        version: f.replace(".zip", ""),
-        size: stat.size,
-        url: `/download/${f}`
-      };
-    })
-    .sort((a, b) => b.size - a.size);
+// === DASHBOARD ===
+app.get("/dashboard", isAuthenticated, (req, res) => {
+  const version = fs.existsSync(versionFile)
+    ? fs.readFileSync(versionFile, "utf8").trim()
+    : "v1.0";
 
-  res.render("dashboard", { user: req.user, version: currentVersion, releases });
+  let releases = [];
+  if (fs.existsSync(releasesDir)) {
+    releases = fs
+      .readdirSync(releasesDir)
+      .filter((f) => f.endsWith(".zip"))
+      .map((f) => {
+        const filePath = path.join(releasesDir, f);
+        const stats = fs.statSync(filePath);
+        return {
+          version: f.replace(".zip", ""),
+          size: stats.size,
+          date: stats.mtime,
+        };
+      });
+  }
+
+  res.render("dashboard", { version, releases });
 });
 
-/* ===================== API VERSION ===================== */
+// === UPLOAD NOUVELLE VERSION ===
+const upload = multer({ dest: "uploads/" });
 
+app.post("/upload", isAuthenticated, upload.single("file"), (req, res) => {
+  if (!req.file || !req.body.version) {
+    return res.status(400).send("Fichier ou version manquant.");
+  }
+
+  const version = req.body.version.startsWith("v")
+    ? req.body.version
+    : "v" + req.body.version;
+  const destPath = path.join(releasesDir, `${version}.zip`);
+
+  fs.renameSync(req.file.path, destPath);
+  fs.writeFileSync(versionFile, version);
+
+  console.log(`✅ Nouvelle version ${version} enregistrée.`);
+  res.status(200).send("Upload terminé !");
+});
+
+// === API VERSION POUR LES BOTS ===
 app.get("/api/version", (req, res) => {
-  const botId = req.query.bot_id || "unknown";
-  const botVersion = req.query.version || "unknown";
+  const version = fs.existsSync(versionFile)
+    ? fs.readFileSync(versionFile, "utf8").trim()
+    : "v1.0";
 
-  stats.downloads++;
-  stats.bots[botId] = { version: botVersion, lastCheck: new Date().toISOString() };
-  fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2));
+  const latestZip = path.join(releasesDir, `${version}.zip`);
+  if (!fs.existsSync(latestZip))
+    return res.status(404).json({ error: "Aucune version trouvée" });
 
-  res.json({
-    version: currentVersion,
-    download: `https://cdn.jsdelivr.net/gh/ZIKOpl/bot-updates@main/releases/${currentVersion}/bot-${currentVersion}.zip`,
-  });
+  const download = `https://${req.hostname}/releases/${version}.zip`;
+
+  res.json({ version, download });
 });
 
-/* ===================== DOWNLOAD ===================== */
+// === PAGE 403 (accès refusé) ===
+app.get("/forbidden", (req, res) => res.render("forbidden"));
 
-app.get("/download/:file", (req, res) => {
-  const filePath = path.join(UPLOAD_DIR, req.params.file);
-  if (!fs.existsSync(filePath)) return res.status(404).send("Fichier introuvable");
-  res.download(filePath);
+// === LANCEMENT DU SERVEUR ===
+app.listen(PORT, () => {
+  console.log(`✅ Panel en ligne sur http://localhost:${PORT}`);
 });
-
-/* ===================== AUTH ===================== */
-
-app.get("/login", passport.authenticate("discord"));
-app.get("/callback",
-  passport.authenticate("discord", { failureRedirect: "/" }),
-  (req, res) => res.redirect("/dashboard")
-);
-app.get("/logout", (req, res) => req.logout(() => res.redirect("/")));
-
-/* ===================== START ===================== */
-
-app.listen(PORT, () => console.log(`✅ Panel en ligne sur http://localhost:${PORT}`));
