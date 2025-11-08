@@ -19,8 +19,9 @@ const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 const RELEASES_FILE = path.join(DATA_DIR, "releases.json");
 const STATS_FILE = path.join(DATA_DIR, "stats.json");
 
-// --- FS init
+// --- Dossiers
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+fs.mkdirSync(DATA_DIR, { recursive: true });
 
 function readJSON(file, fallback) {
   try {
@@ -42,6 +43,12 @@ let stats = readJSON(STATS_FILE, { downloads: 0, bots: {} });
 app.set("view engine", "ejs");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// ✅ sert le CSS, images, JS depuis /public
+const PUBLIC_DIR = path.join(__dirname, "public");
+app.use(express.static(PUBLIC_DIR));
+
+// ✅ sert aussi les fichiers uploadés
 app.use("/uploads", express.static(UPLOAD_DIR));
 
 app.use(
@@ -65,7 +72,7 @@ passport.use(
     {
       clientID: process.env.DISCORD_CLIENT_ID,
       clientSecret: process.env.DISCORD_CLIENT_SECRET,
-      callbackURL: process.env.CALLBACK_URL, // ex: https://ton-service.onrender.com/callback
+      callbackURL: process.env.CALLBACK_URL, // ex: https://ton-site.onrender.com/callback
       scope: ["identify"],
     },
     (accessToken, refreshToken, profile, done) => done(null, profile)
