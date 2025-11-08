@@ -3,24 +3,115 @@
 <head>
   <meta charset="UTF-8">
   <title>Dashboard - Bot Updates</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: sans-serif; background: #0d1117; color: #fff; padding: 20px; }
-    h1 { color: #58a6ff; }
-    a { color: #58a6ff; }
-    .box { background: #161b22; padding: 20px; border-radius: 8px; margin-top: 20px; }
-    .logout { float: right; }
+    :root {
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --text: #c9d1d9;
+      --primary: #58a6ff;
+      --danger: #f85149;
+      --success: #3fb950;
+      --radius: 10px;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    header {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    a.logout {
+      color: var(--danger);
+      text-decoration: none;
+      font-weight: 500;
+      transition: 0.2s;
+    }
+    a.logout:hover { text-decoration: underline; }
+
+    .card {
+      background-color: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 30px;
+      width: 100%;
+      max-width: 800px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+      animation: fadeIn 0.5s ease;
+    }
+
+    .info p {
+      margin: 10px 0;
+      font-size: 1.1em;
+    }
+
+    .btn {
+      display: inline-block;
+      background-color: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      text-decoration: none;
+      margin-top: 15px;
+      transition: 0.2s;
+    }
+
+    .btn:hover {
+      background-color: #1f6feb;
+    }
+
+    footer {
+      margin-top: 30px;
+      color: #8b949e;
+      font-size: 0.9em;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
-  <h1>👋 Bienvenue, <%= user.username %></h1>
-  <a href="/logout" class="logout">Déconnexion</a>
+  <header>
+    <h1>⚙️ Bot Update Dashboard</h1>
+    <a href="/logout" class="logout">Se déconnecter</a>
+  </header>
 
-  <div class="box">
-    <h2>⚙️ Gestion des mises à jour</h2>
-    <p>Version actuelle du bot : <strong><%= version %></strong></p>
-    <p>Lien de téléchargement :<br>
-      <a href="<%= downloadUrl %>" target="_blank"><%= downloadUrl %></a>
-    </p>
+  <div class="card">
+    <div class="info">
+      <p><strong>Connecté en tant que :</strong> <%= user.username %></p>
+      <p><strong>Version actuelle :</strong> <span style="color: var(--success)"><%= version %></span></p>
+      <p><strong>Lien de téléchargement :</strong><br>
+        <a href="<%= downloadUrl %>" target="_blank" style="color: var(--primary)"><%= downloadUrl %></a>
+      </p>
+    </div>
+
+    <a href="/" class="btn">Retour à l’accueil</a>
   </div>
+
+  <footer>
+    <p>&copy; 2025 - Bot Update System | by <span style="color: var(--primary)">ZIKO</span></p>
+  </footer>
 </body>
 </html>

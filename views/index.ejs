@@ -1,19 +1,98 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Mises à jour du bot</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-  </head>
-  <body style="font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto;">
-    <h1>🤖 Dernière version : <%= version %></h1>
-    <% if (!user) { %>
-      <p><a href="/login">Se connecter avec Discord</a></p>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Bot Update Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --text: #c9d1d9;
+      --primary: #58a6ff;
+      --danger: #f85149;
+      --success: #3fb950;
+      --radius: 10px;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background-color: var(--bg-card);
+      padding: 30px;
+      border-radius: var(--radius);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+      animation: fadeIn 0.6s ease;
+    }
+
+    h1 {
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    a.button {
+      display: inline-block;
+      margin-top: 15px;
+      background: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      text-decoration: none;
+      transition: 0.2s;
+    }
+
+    a.button:hover {
+      background: #1f6feb;
+    }
+
+    footer {
+      margin-top: 25px;
+      font-size: 0.9em;
+      color: #8b949e;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 Bot Update Panel</h1>
+    <p>Version actuelle : <strong><%= version %></strong></p>
+
+    <% if (user) { %>
+      <p>Connecté en tant que <strong><%= user.username %></strong></p>
+      <a href="/dashboard" class="button">Accéder au dashboard</a>
+      <br><br>
+      <a href="/logout" style="color: var(--danger)">Se déconnecter</a>
     <% } else { %>
-      <p>Connecté en tant que <b><%= user.username %>#<%= user.discriminator %></b></p>
-      <p><a href="/dashboard">Aller au dashboard admin</a> • <a href="/logout">Se déconnecter</a></p>
+      <p>Connecte-toi avec Discord pour gérer tes mises à jour.</p>
+      <a href="/login" class="button">Se connecter avec Discord</a>
     <% } %>
-    <hr />
-    <p>Endpoint public pour les bots : <code>/api/version</code></p>
-  </body>
+
+    <footer>
+      <p>&copy; 2025 - Bot Update System | by <span style="color: var(--primary)">ZIKO</span></p>
+    </footer>
+  </div>
+</body>
 </html>
