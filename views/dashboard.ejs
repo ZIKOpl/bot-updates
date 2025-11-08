@@ -18,33 +18,26 @@
       const bar = progress.querySelector(".bar");
       const txt = progress.querySelector(".txt");
 
-      // 💡 Sélection et drag & drop
       const setBadge = (name) => {
         badge.textContent = name || "Aucun fichier sélectionné";
         badge.classList.toggle("has", !!name);
       };
 
-      input.addEventListener("change", e => {
-        setBadge(e.target.files[0]?.name);
-      });
-
+      input.addEventListener("change", e => setBadge(e.target.files[0]?.name));
       drop.addEventListener("click", () => input.click());
+
       ["dragenter", "dragover"].forEach(ev => {
         drop.addEventListener(ev, e => {
           e.preventDefault();
-          e.stopPropagation();
           drop.classList.add("active");
         });
       });
-
       ["dragleave", "drop"].forEach(ev => {
         drop.addEventListener(ev, e => {
           e.preventDefault();
-          e.stopPropagation();
           drop.classList.remove("active");
         });
       });
-
       drop.addEventListener("drop", e => {
         if (e.dataTransfer.files?.length) {
           input.files = e.dataTransfer.files;
@@ -52,10 +45,8 @@
         }
       });
 
-      // 📦 Envoi du fichier
       form.addEventListener("submit", async e => {
         e.preventDefault();
-
         if (!input.files.length) return alert("Sélectionne un fichier .zip");
         if (!versionInput.value.trim()) return alert("Renseigne une version (ex: v2.3)");
 
@@ -78,18 +69,14 @@
         xhr.onload = () => {
           if (xhr.status === 200) {
             txt.textContent = "✅ Upload terminé";
-            setTimeout(() => window.location.reload(), 800);
-          } else {
-            alert("Erreur d’upload : " + xhr.responseText);
-          }
+            setTimeout(() => window.location.reload(), 1000);
+          } else alert("Erreur : " + xhr.responseText);
         };
-
-        xhr.onerror = () => alert("Erreur réseau pendant l’envoi.");
+        xhr.onerror = () => alert("Erreur réseau.");
         xhr.send(formData);
       });
 
-      // 📊 Graphique des releases
-      const rel = JSON.parse('<%- JSON.stringify(releases || []) %>');
+      const rel = <%= JSON.stringify(releases || []) %>;
       const ctx = document.getElementById("relChart");
       if (ctx && rel.length) {
         const labels = rel.map(r => r.version);
@@ -108,14 +95,7 @@
           },
           options: {
             responsive: true,
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: {
-                  label: ctx => ctx.raw + " Mo"
-                }
-              }
-            },
+            plugins: { legend: { display: false } },
             scales: {
               x: { ticks: { color: "#ccc" } },
               y: { ticks: { color: "#ccc" }, beginAtZero: true }
@@ -129,9 +109,7 @@
 
 <body>
   <header class="nav">
-    <div class="brand">
-      <div class="logo"></div> <span>Bot Updates</span>
-    </div>
+    <div class="brand"><div class="logo"></div> <span>Bot Updates</span></div>
     <nav class="actions">
       <a class="btn ghost" href="/">Accueil</a>
       <a class="btn danger" href="/logout">Se déconnecter</a>
@@ -141,17 +119,15 @@
   <main class="container">
     <section class="hero small">
       <h1>Panel d’administration</h1>
-      <p>Gère ici les nouvelles versions du bot et leur distribution automatique.</p>
+      <p>Glisse ton .zip pour publier une nouvelle version.</p>
       <div class="version-pill">Version actuelle : <strong><%= version %></strong></div>
     </section>
 
     <section class="grid admin">
-      <!-- Zone upload -->
       <div class="card">
         <h2>📦 Nouvelle release</h2>
-        <form id="uploadForm" class="uploader" enctype="multipart/form-data" method="post" action="/upload">
+        <form id="uploadForm" enctype="multipart/form-data">
           <div id="dropzone" class="drop">
-            <div class="icon"></div>
             <div class="title">Glisse ton fichier ici</div>
             <div class="subtitle">ou clique pour parcourir</div>
             <div class="badge" id="fileBadge">Aucun fichier sélectionné</div>
@@ -168,35 +144,12 @@
             <div class="txt">0%</div>
           </div>
 
-          <button class="btn success">Publier la version</button>
+          <button class="btn success">Publier</button>
         </form>
       </div>
 
-      <!-- Historique -->
       <div class="card">
-        <h2>🕒 Historique des releases</h2>
-        <div class="release-list admin">
-          <% if (!files || files.length === 0) { %>
-            <div class="empty">Aucune version publiée.</div>
-          <% } else { %>
-            <% files.forEach(f => { %>
-              <div class="release-item admin">
-                <div>
-                  <div class="v"><%= f.version %></div>
-                  <div class="meta"><%= (f.size/1024/1024).toFixed(2) %> Mo</div>
-                </div>
-                <div class="actions">
-                  <a class="btn ghost" href="<%= f.url %>">Télécharger</a>
-                </div>
-              </div>
-            <% }) %>
-          <% } %>
-        </div>
-      </div>
-
-      <!-- Graphique -->
-      <div class="card">
-        <h2>📈 Taille des versions</h2>
+        <h2>📈 Historique des versions</h2>
         <canvas id="relChart" height="160"></canvas>
       </div>
     </section>
