@@ -2,87 +2,29 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>⛔ Accès refusé</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Accès refusé</title>
   <style>
-    :root {
-      --bg: #0d1117;
-      --bg-card: #161b22;
-      --text: #c9d1d9;
-      --danger: #f85149;
-      --primary: #58a6ff;
-      --radius: 10px;
-    }
-
     body {
-      margin: 0;
-      font-family: "Inter", sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      flex-direction: column;
-      text-align: center;
-    }
-
-    .card {
-      background-color: var(--bg-card);
-      border-radius: var(--radius);
-      padding: 40px 30px;
-      width: 90%;
-      max-width: 500px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-      animation: fadeIn 0.6s ease;
-    }
-
-    h1 {
-      color: var(--danger);
-      font-size: 2.2em;
-      margin-bottom: 15px;
-    }
-
-    p {
-      font-size: 1.1em;
-      margin: 10px 0 25px 0;
-    }
-
-    a.btn {
-      background-color: var(--primary);
+      background: #0e0e0e;
       color: #fff;
-      padding: 10px 25px;
-      border-radius: var(--radius);
+      font-family: "Poppins", sans-serif;
+      text-align: center;
+      padding-top: 100px;
+    }
+    h1 {
+      font-size: 2.5em;
+      color: #ff3b3b;
+    }
+    a {
+      color: #ff8f00;
       text-decoration: none;
-      transition: 0.2s;
-    }
-
-    a.btn:hover {
-      background-color: #1f6feb;
-    }
-
-    footer {
-      margin-top: 25px;
-      font-size: 0.9em;
-      color: #8b949e;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>⛔ Accès refusé</h1>
-    <p>Tu n’es pas autorisé à accéder à cette page.</p>
-    <p>Seul le propriétaire du bot peut gérer les mises à jour.</p>
-    <a href="/" class="btn">Retour à l’accueil</a>
-  </div>
-
-  <footer>
-    <p>&copy; 2025 - Bot Update System | by <span style="color: var(--primary)">ZIKO</span></p>
-  </footer>
+  <h1>🚫 Accès refusé</h1>
+  <p>Tu n’es pas autorisé à accéder à cette page.</p>
+  <a href="/">Retour à l’accueil</a>
 </body>
 </html>

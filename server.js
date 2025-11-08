@@ -12,12 +12,29 @@ const app = express();
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "/data/uploads";
 const STATS_FILE = path.join(UPLOAD_DIR, "stats.json");
-const OWNER_ID = process.env.OWNER_ID; // ton ID Discord
+const VERSION_FILE = path.join(UPLOAD_DIR, "version.txt");
+
+const OWNER_ID = process.env.OWNER_ID; // Ton ID Discord
 const SESSION_SECRET = process.env.SESSION_SECRET || "super_secret_session";
 const PORT = process.env.PORT || 3000;
+
 let currentVersion = process.env.INIT_VERSION || "v1";
 
+// Crée les dossiers nécessaires
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+/* ===================== CHARGEMENT VERSION ===================== */
+try {
+  if (fs.existsSync(VERSION_FILE)) {
+    currentVersion = fs.readFileSync(VERSION_FILE, "utf8").trim();
+    console.log(`📦 Version chargée depuis le disque : ${currentVersion}`);
+  } else {
+    fs.writeFileSync(VERSION_FILE, currentVersion, "utf8");
+    console.log(`💾 Fichier version.txt créé avec ${currentVersion}`);
+  }
+} catch (err) {
+  console.warn("⚠️ Impossible de lire ou écrire version.txt :", err);
+}
 
 /* ===================== STATS ===================== */
 let stats = { downloads: 0, bots: {} };
@@ -83,7 +100,9 @@ app.get("/logout", (req, res) => {
 
 app.get("/", (req, res) => {
   const totalBots = Object.keys(stats.bots).length;
-  const upToDate = Object.values(stats.bots).filter(b => b.version === currentVersion).length;
+  const upToDate = Object.values(stats.bots).filter(
+    (b) => b.botVersion === currentVersion
+  ).length;
   const outdated = totalBots - upToDate;
 
   res.render("index", {
@@ -100,7 +119,8 @@ app.get("/", (req, res) => {
 
 app.get("/dashboard", (req, res) => {
   if (!isOwner(req)) return res.status(403).render("forbidden");
-  const files = fs.readdirSync(UPLOAD_DIR).filter(f => f.endsWith(".zip"));
+
+  const files = fs.readdirSync(UPLOAD_DIR).filter((f) => f.endsWith(".zip"));
   res.render("dashboard", { user: req.user, version: currentVersion, files, stats });
 });
 
@@ -111,10 +131,16 @@ app.post("/upload", upload.single("updateZip"), (req, res) => {
   const newVersion = (req.body.version || "").trim();
   if (!req.file || !newVersion) return res.status(400).send("Version manquante ou fichier absent");
 
-  const target = path.join(UPLOAD_DIR, `${newVersion}.zip`);
+  // Sécurisation du nom de version
+  const safeVersion = newVersion.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const target = path.join(UPLOAD_DIR, `${safeVersion}.zip`);
   fs.renameSync(req.file.path, target);
-  currentVersion = newVersion;
-  fs.writeFileSync(path.join(UPLOAD_DIR, "version.txt"), currentVersion, "utf8");
+
+  // Mise à jour de la version
+  currentVersion = safeVersion;
+  fs.writeFileSync(VERSION_FILE, currentVersion, "utf8");
+
+  console.log(`✅ Nouvelle version uploadée : ${currentVersion}`);
   res.redirect("/dashboard");
 });
 
@@ -125,7 +151,12 @@ app.get("/api/version", (req, res) => {
   const botVersion = req.query.version || "unknown";
 
   stats.downloads++;
-  stats.bots[botId] = { version: botVersion, lastCheck: new Date().toISOString() };
+  stats.bots[botId] = {
+    botVersion,
+    latestVersion: currentVersion,
+    lastCheck: new Date().toISOString(),
+  };
+
   fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2));
 
   res.json({
@@ -147,4 +178,5 @@ app.get("/download/:file", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`✅ Update site listening on port ${PORT}`);
+  console.log(`🌐 Version actuelle : ${currentVersion}`);
 });

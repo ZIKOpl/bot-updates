@@ -2,42 +2,115 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard • Mises à jour</title>
   <style>
-    body { background: #0e0e10; color: #fff; font-family: 'Segoe UI'; padding: 40px; }
-    h1 { color: #5865f2; }
-    form { margin: 20px 0; background: #18181b; padding: 20px; border-radius: 10px; }
-    input, button { margin: 5px; padding: 10px; border: none; border-radius: 5px; }
-    button { background: #5865f2; color: white; cursor: pointer; }
-    button:hover { background: #4752c4; }
-    .files, .stats { margin-top: 30px; background: #18181b; padding: 20px; border-radius: 10px; }
-    ul { list-style: none; padding: 0; }
-    li { margin: 5px 0; }
+    body {
+      font-family: "Poppins", sans-serif;
+      background-color: #0e0e0e;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #ff3b3b;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .section {
+      background: #191919;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px rgba(255, 90, 0, 0.2);
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    input[type="file"],
+    input[type="text"] {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px;
+      color: #fff;
+    }
+    button {
+      background: #ff8f00;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #ffaa33;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #333;
+      text-align: left;
+    }
+    th {
+      color: #ffb84d;
+    }
+    .logout {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      color: #ff8f00;
+      text-decoration: none;
+      font-size: 0.9em;
+    }
   </style>
 </head>
 <body>
-  <h1>📂 Dashboard Admin</h1>
-  <p>Connecté en tant que <%= user.username %></p>
+  <a href="/logout" class="logout">🚪 Déconnexion</a>
+  <h1>🛠️ Tableau de bord admin</h1>
 
-  <form action="/upload" method="POST" enctype="multipart/form-data">
-    <input type="text" name="version" placeholder="Nouvelle version (ex: v2)" required />
-    <input type="file" name="updateZip" accept=".zip" required />
-    <button type="submit">📤 Envoyer la mise à jour</button>
-  </form>
-
-  <div class="stats">
-    <h2>📊 Statistiques</h2>
-    <p>Téléchargements : <%= stats.downloads %></p>
-    <p>Total bots : <%= Object.keys(stats.bots).length %></p>
+  <div class="section">
+    <h2>📤 Mettre en ligne une mise à jour</h2>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+      <input type="file" name="updateZip" accept=".zip" required />
+      <input type="text" name="version" placeholder="Exemple : v2.1" required />
+      <button type="submit">Uploader</button>
+    </form>
   </div>
 
-  <div class="files">
-    <h2>📦 Fichiers disponibles</h2>
-    <ul>
-      <% files.forEach(f => { %>
-        <li><%= f %></li>
-      <% }) %>
-    </ul>
+  <div class="section">
+    <h2>📦 Versions disponibles</h2>
+    <% if (files.length === 0) { %>
+      <p>Aucun fichier pour l’instant.</p>
+    <% } else { %>
+      <table>
+        <tr>
+          <th>Nom du fichier</th>
+          <th>Téléchargement</th>
+        </tr>
+        <% files.forEach(f => { %>
+          <tr>
+            <td><%= f %></td>
+            <td><a href="/download/<%= f %>" style="color:#00ffaa">Télécharger</a></td>
+          </tr>
+        <% }) %>
+      </table>
+    <% } %>
+  </div>
+
+  <div class="section">
+    <h2>📊 Statistiques globales</h2>
+    <p>Version actuelle : <strong><%= version %></strong></p>
+    <p>Téléchargements totaux : <strong><%= stats.downloads %></strong></p>
+    <p>Bots enregistrés : <strong><%= Object.keys(stats.bots).length %></strong></p>
   </div>
 </body>
 </html>

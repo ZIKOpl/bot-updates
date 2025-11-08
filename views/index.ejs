@@ -3,83 +3,116 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🚀 Panel de mise à jour</title>
+  <title>Mises à jour du bot</title>
   <style>
-    :root {
-      --bg: #0e0e10;
-      --card: #18181b;
-      --accent: #5865f2;
-      --success: #00ff90;
-      --danger: #ff4d4d;
-      --text: #ffffff;
-      --muted: #aaaaaa;
-    }
-    * { box-sizing: border-box; }
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background-color: #0f0f0f;
+      color: #f5f5f5;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      margin: 0;
+      padding: 30px;
     }
-
-    header { margin-top: 60px; text-align: center; }
-    h1 { color: var(--accent); font-size: 2.2em; }
-    p { color: var(--muted); }
-
-    .stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin-top: 40px; }
+    h1 {
+      color: #ff3b3b;
+      margin-bottom: 10px;
+      font-size: 2.4em;
+      letter-spacing: 1px;
+    }
+    h2 {
+      margin-top: 0;
+      color: #ff8f00;
+    }
     .card {
-      background: var(--card);
-      border-radius: 14px;
-      padding: 25px;
-      width: 260px;
-      text-align: center;
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.25);
-      transition: transform 0.2s ease;
+      background: #1b1b1b;
+      border: 1px solid #222;
+      border-radius: 15px;
+      padding: 25px 35px;
+      margin: 20px 0;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 0 20px rgba(255, 100, 0, 0.2);
     }
-    .card:hover { transform: translateY(-5px); }
-    .card h3 { margin: 0 0 10px 0; font-weight: 500; }
-    .card p { font-size: 1.8em; margin: 0; color: var(--success); font-weight: 700; }
-
-    .login-btn {
-      margin-top: 40px;
-      padding: 12px 22px;
-      background-color: var(--accent);
-      color: #fff;
-      border-radius: 10px;
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    .stat {
+      background: #161616;
+      border-radius: 12px;
+      padding: 15px;
+      flex: 1;
+      margin: 0 5px;
+      text-align: center;
+    }
+    .stat h3 {
+      margin: 5px 0;
+      font-size: 1.5em;
+      color: #ffa31a;
+    }
+    .stat span {
+      font-size: 0.9em;
+      color: #ccc;
+    }
+    .footer {
+      margin-top: auto;
+      padding: 15px;
+      font-size: 0.8em;
+      color: #888;
+    }
+    a.login {
+      color: #ff8f00;
       text-decoration: none;
       font-weight: bold;
-      transition: background 0.2s;
+      border: 1px solid #ff8f00;
+      padding: 8px 14px;
+      border-radius: 8px;
+      transition: 0.3s;
     }
-    .login-btn:hover { background-color: #4752c4; }
-
-    .footer { margin-top: auto; padding: 20px; color: var(--muted); }
+    a.login:hover {
+      background: #ff8f00;
+      color: #000;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>🚀 Système de mise à jour</h1>
-    <p>Version actuelle : <strong style="color: var(--success);"><%= version %></strong></p>
-  </header>
+  <h1>🚀 Système de mises à jour</h1>
+  <div class="card">
+    <h2>Version actuelle : <span style="color:#00ff9f"><%= version %></span></h2>
+    <p>Bienvenue sur le service de mise à jour automatique de votre bot.</p>
 
-  <section class="stats">
-    <div class="card"><h3>📦 Téléchargements</h3><p><%= downloads %></p></div>
-    <div class="card"><h3>🤖 Total bots</h3><p><%= totalBots %></p></div>
-    <div class="card"><h3>🟢 À jour</h3><p><%= upToDate %></p></div>
-    <div class="card"><h3>🔴 Obsolètes</h3><p><%= outdated %></p></div>
-  </section>
+    <div class="stats">
+      <div class="stat">
+        <h3><%= totalBots %></h3>
+        <span>Bots connectés</span>
+      </div>
+      <div class="stat">
+        <h3><%= upToDate %></h3>
+        <span>À jour</span>
+      </div>
+      <div class="stat">
+        <h3><%= outdated %></h3>
+        <span>Non à jour</span>
+      </div>
+      <div class="stat">
+        <h3><%= downloads %></h3>
+        <span>Téléchargements</span>
+      </div>
+    </div>
+  </div>
 
   <% if (!user) { %>
-    <a href="/login" class="login-btn">🔐 Connexion admin</a>
+  <a href="/login" class="login">🔑 Connexion Discord (Admin)</a>
   <% } else { %>
-    <a href="/dashboard" class="login-btn">📂 Accéder au Dashboard</a>
+  <a href="/dashboard" class="login">⚙️ Aller au tableau de bord</a>
   <% } %>
 
-  <footer class="footer">
-    Système de mise à jour automatique • <%= new Date().getFullYear() %>
-  </footer>
+  <div class="footer">
+    © <%= new Date().getFullYear() %> • Système de mise à jour ZIKO
+  </div>
 </body>
 </html>
