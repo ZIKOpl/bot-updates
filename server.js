@@ -19,17 +19,15 @@ const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 const RELEASES_FILE = path.join(DATA_DIR, "releases.json");
 const STATS_FILE = path.join(DATA_DIR, "stats.json");
 
-// FS init
+// --- FS init
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-// Fichiers JSON init
 function readJSON(file, fallback) {
   try {
     if (fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, "utf8"));
   } catch {}
   return fallback;
 }
-
 function writeJSON(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
 }
@@ -44,14 +42,14 @@ let stats = readJSON(STATS_FILE, { downloads: 0, bots: {} });
 app.set("view engine", "ejs");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/uploads", express.static(UPLOAD_DIR)); // sert les zips (privés via lien direct)
+app.use("/uploads", express.static(UPLOAD_DIR));
 
 app.use(
   session({
     secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { sameSite: "lax", secure: false }
+    cookie: { sameSite: "lax", secure: false },
   })
 );
 
@@ -68,7 +66,7 @@ passport.use(
       clientID: process.env.DISCORD_CLIENT_ID,
       clientSecret: process.env.DISCORD_CLIENT_SECRET,
       callbackURL: process.env.CALLBACK_URL, // ex: https://ton-service.onrender.com/callback
-      scope: ["identify"]
+      scope: ["identify"],
     },
     (accessToken, refreshToken, profile, done) => done(null, profile)
   )
@@ -87,11 +85,10 @@ function requireOwner(req, res, next) {
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => {
-    // on renomme selon version choisie : bot-<version>.zip
     const v = (req.body.version || "").trim();
     const safeV = v.replace(/[^\w.\-]/g, "_");
     cb(null, `bot-${safeV}.zip`);
-  }
+  },
 });
 const upload = multer({
   storage,
@@ -100,10 +97,10 @@ const upload = multer({
       return cb(new Error("Seuls les fichiers .zip sont acceptés"));
     }
     cb(null, true);
-  }
+  },
 });
 
-/* ===================== ROUTES AUTH ===================== */
+/* ===================== AUTH ROUTES ===================== */
 
 app.get("/login", passport.authenticate("discord"));
 app.get(
@@ -114,30 +111,36 @@ app.get(
 app.get("/logout", (req, res) => {
   req.logout(() => res.redirect("/"));
 });
-app.get("/forbidden", (req, res) => res.status(403).render("forbidden", { user: req.user }));
+app.get("/forbidden", (req, res) =>
+  res.status(403).render("forbidden", { user: req.user })
+);
 
 /* ===================== HELPERS ===================== */
 
 function formatDate(iso) {
   try {
-    return new Date(iso).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" });
+    return new Date(iso).toLocaleString("fr-FR", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
   } catch {
     return iso || "";
   }
 }
-
 function getCounters() {
   const totalBots = Object.keys(stats.bots).length;
-  const upToDate = Object.values(stats.bots).filter(b => b.botVersion === releases.latest).length;
+  const upToDate = Object.values(stats.bots).filter(
+    (b) => b.botVersion === releases.latest
+  ).length;
   const outdated = Math.max(0, totalBots - upToDate);
   return { totalBots, upToDate, outdated };
 }
 
-/* ===================== PAGES PUBLIQUES ===================== */
+/* ===================== PUBLIC PAGE ===================== */
 
 app.get("/", (req, res) => {
   const { totalBots, upToDate, outdated } = getCounters();
-  const last = releases.items.find(i => i.version === releases.latest);
+  const last = releases.items.find((i) => i.version === releases.latest);
   res.render("index", {
     user: req.user,
     version: releases.latest,
@@ -145,20 +148,17 @@ app.get("/", (req, res) => {
     downloads: stats.downloads || 0,
     totalBots,
     upToDate,
-    outdated
+    outdated,
   });
 });
 
-/* ===================== DASHBOARD (OWNER SEUL) ===================== */
+/* ===================== DASHBOARD ===================== */
 
 app.get("/dashboard", requireOwner, (req, res) => {
   const { totalBots, upToDate, outdated } = getCounters();
-
-  // liste des releases triées (desc)
   const rel = [...releases.items].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
-
   res.render("dashboard", {
     user: req.user,
     latest: releases.latest,
@@ -166,31 +166,49 @@ app.get("/dashboard", requireOwner, (req, res) => {
     stats,
     totalBots,
     upToDate,
-    outdated
+    outdated,
   });
 });
 
-// Upload d’une nouvelle release
-app.post("/upload", requireOwner, upload.single("zip"), (req, res) => {
-  const version = (req.body.version || "").trim();
-  if (!version) return res.status(400).send("Version manquante.");
-  if (!req.file) return res.status(400).send("Aucun fichier ZIP reçu.");
+/* ===================== UPLOAD ===================== */
 
-  const filename = req.file.filename; // bot-<version>.zip
-  const createdAt = new Date().toISOString();
+app.post("/upload", requireOwner, (req, res, next) => {
+  const m = upload.single("zip");
+  m(req, res, (err) => {
+    if (err) {
+      console.error("Multer error:", err);
+      return res.status(400).send(err.message || "Erreur d’upload");
+    }
+    const rawVersion = (req.body.version || "").trim();
+    if (!rawVersion) return res.status(400).send("Version manquante.");
 
-  // Ajoute / remplace ou met à jour
-  const existingIndex = releases.items.findIndex(r => r.version === version);
-  const record = { version, filename, createdAt };
+    const version = /^v/i.test(rawVersion) ? rawVersion : "v" + rawVersion;
+    if (!req.file) return res.status(400).send("Aucun fichier ZIP reçu.");
 
-  if (existingIndex >= 0) releases.items[existingIndex] = record;
-  else releases.items.push(record);
+    const desiredName = `bot-${version}.zip`;
+    const currentPath = path.join(UPLOAD_DIR, req.file.filename);
+    const targetPath = path.join(UPLOAD_DIR, desiredName);
+    if (req.file.filename !== desiredName) {
+      try {
+        fs.renameSync(currentPath, targetPath);
+      } catch (e) {
+        console.error(e);
+        return res.status(500).send("Impossible de renommer le fichier.");
+      }
+    }
 
-  // définit comme dernière version
-  releases.latest = version;
-  writeJSON(RELEASES_FILE, releases);
+    const createdAt = new Date().toISOString();
+    const existingIndex = releases.items.findIndex((r) => r.version === version);
+    const record = { version, filename: desiredName, createdAt };
 
-  return res.redirect("/dashboard");
+    if (existingIndex >= 0) releases.items[existingIndex] = record;
+    else releases.items.push(record);
+
+    releases.latest = version;
+    writeJSON(RELEASES_FILE, releases);
+
+    return res.redirect("/dashboard");
+  });
 });
 
 /* ===================== API POUR LES BOTS ===================== */
@@ -199,20 +217,21 @@ app.get("/api/version", (req, res) => {
   const botId = (req.query.bot_id || "unknown").toString();
   const botVersion = (req.query.version || "unknown").toString();
 
-  // stats
   stats.downloads = (stats.downloads || 0) + 1;
   stats.bots[botId] = { botVersion, lastCheck: new Date().toISOString() };
   writeJSON(STATS_FILE, stats);
 
-  // URL de téléchargement direct (fichier servi par le serveur)
-  const rec = releases.items.find(r => r.version === releases.latest);
+  const rec = releases.items.find((r) => r.version === releases.latest);
   const url =
-    rec ? `${req.protocol}://${req.get("host")}/uploads/${encodeURIComponent(rec.filename)}` : null;
+    rec &&
+    `${req.protocol}://${req.get("host")}/uploads/${encodeURIComponent(
+      rec.filename
+    )}`;
 
   res.json({
     version: releases.latest,
     download: url,
-    message: "Dernière version disponible"
+    message: "Dernière version disponible",
   });
 });
 
