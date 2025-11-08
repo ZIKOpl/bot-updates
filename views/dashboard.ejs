@@ -1,42 +1,26 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Dashboard admin</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-  </head>
-  <body style="font-family: system-ui, sans-serif; max-width: 900px; margin: 40px auto;">
-    <h1>👑 Dashboard</h1>
-    <p>Connecté en tant que <b><%= user.username %>#<%= user.discriminator %></b></p>
-    <p>Version actuelle : <b><%= version %></b></p>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Bot Updates</title>
+  <style>
+    body { font-family: sans-serif; background: #0d1117; color: #fff; padding: 20px; }
+    h1 { color: #58a6ff; }
+    a { color: #58a6ff; }
+    .box { background: #161b22; padding: 20px; border-radius: 8px; margin-top: 20px; }
+    .logout { float: right; }
+  </style>
+</head>
+<body>
+  <h1>👋 Bienvenue, <%= user.username %></h1>
+  <a href="/logout" class="logout">Déconnexion</a>
 
-    <h2>Uploader une mise à jour</h2>
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-      <p>
-        <label>Version (ex: v2) :</label><br />
-        <input type="text" name="version" placeholder="v2" required />
-      </p>
-      <p>
-        <label>Fichier .zip :</label><br />
-        <input type="file" name="updateZip" accept=".zip" required />
-      </p>
-      <button type="submit">Uploader</button>
-    </form>
-
-    <h2>Zips disponibles</h2>
-    <% if (files.length === 0) { %>
-      <p>Aucun fichier pour l’instant.</p>
-    <% } else { %>
-      <ul>
-        <% files.forEach(f => { %>
-          <li>
-            <code><%= f.name %></code> (version <b><%= f.version %></b>)
-            — <a href="<%= f.path %>">Télécharger</a>
-          </li>
-        <% }) %>
-      </ul>
-    <% } %>
-
-    <p><a href="/">← Accueil</a> • <a href="/logout">Se déconnecter</a></p>
-  </body>
+  <div class="box">
+    <h2>⚙️ Gestion des mises à jour</h2>
+    <p>Version actuelle du bot : <strong><%= version %></strong></p>
+    <p>Lien de téléchargement :<br>
+      <a href="<%= downloadUrl %>" target="_blank"><%= downloadUrl %></a>
+    </p>
+  </div>
+</body>
 </html>
