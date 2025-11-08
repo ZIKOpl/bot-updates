@@ -10,7 +10,7 @@ const app = express();
 
 /* ===================== CONFIG ===================== */
 
-const OWNER_ID = process.env.OWNER_ID || "1398750844459024454"; // 👑 Ton ID Discord
+const OWNER_ID = process.env.OWNER_ID || "1398750844459024454"; 
 const SESSION_SECRET = process.env.SESSION_SECRET || "super_secret_session";
 const PORT = process.env.PORT || 3000;
 
@@ -19,7 +19,6 @@ const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 const RELEASES_FILE = path.join(DATA_DIR, "releases.json");
 const STATS_FILE = path.join(DATA_DIR, "stats.json");
 
-// --- Dossiers
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
@@ -33,22 +32,17 @@ function writeJSON(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
 }
 
-// releases: { latest: "v1.0", items: [ {version, filename, createdAt} ] }
 let releases = readJSON(RELEASES_FILE, { latest: "v1.0", items: [] });
-// stats: { downloads: 0, bots: { [botId]: { botVersion, lastCheck } } }
 let stats = readJSON(STATS_FILE, { downloads: 0, bots: {} });
 
 /* ===================== EXPRESS / EJS ===================== */
-
 app.set("view engine", "ejs");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ sert le CSS, images, JS depuis /public
+// ✅ Public + Uploads
 const PUBLIC_DIR = path.join(__dirname, "public");
 app.use(express.static(PUBLIC_DIR));
-
-// ✅ sert aussi les fichiers uploadés
 app.use("/uploads", express.static(UPLOAD_DIR));
 
 app.use(
@@ -72,7 +66,7 @@ passport.use(
     {
       clientID: process.env.DISCORD_CLIENT_ID,
       clientSecret: process.env.DISCORD_CLIENT_SECRET,
-      callbackURL: process.env.CALLBACK_URL, // ex: https://ton-site.onrender.com/callback
+      callbackURL: process.env.CALLBACK_URL,
       scope: ["identify"],
     },
     (accessToken, refreshToken, profile, done) => done(null, profile)
@@ -87,7 +81,7 @@ function requireOwner(req, res, next) {
   return res.status(403).render("forbidden", { user: req.user });
 }
 
-/* ===================== MULTER (UPLOAD) ===================== */
+/* ===================== MULTER ===================== */
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
@@ -100,14 +94,13 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
-    if (!file.originalname.toLowerCase().endsWith(".zip")) {
+    if (!file.originalname.toLowerCase().endsWith(".zip"))
       return cb(new Error("Seuls les fichiers .zip sont acceptés"));
-    }
     cb(null, true);
   },
 });
 
-/* ===================== AUTH ROUTES ===================== */
+/* ===================== ROUTES ===================== */
 
 app.get("/login", passport.authenticate("discord"));
 app.get(
@@ -115,14 +108,10 @@ app.get(
   passport.authenticate("discord", { failureRedirect: "/forbidden" }),
   (req, res) => res.redirect("/dashboard")
 );
-app.get("/logout", (req, res) => {
-  req.logout(() => res.redirect("/"));
-});
+app.get("/logout", (req, res) => req.logout(() => res.redirect("/")));
 app.get("/forbidden", (req, res) =>
   res.status(403).render("forbidden", { user: req.user })
 );
-
-/* ===================== HELPERS ===================== */
 
 function formatDate(iso) {
   try {
@@ -143,8 +132,7 @@ function getCounters() {
   return { totalBots, upToDate, outdated };
 }
 
-/* ===================== PUBLIC PAGE ===================== */
-
+/* ===================== INDEX ===================== */
 app.get("/", (req, res) => {
   const { totalBots, upToDate, outdated } = getCounters();
   const last = releases.items.find((i) => i.version === releases.latest);
@@ -160,7 +148,6 @@ app.get("/", (req, res) => {
 });
 
 /* ===================== DASHBOARD ===================== */
-
 app.get("/dashboard", requireOwner, (req, res) => {
   const { totalBots, upToDate, outdated } = getCounters();
   const rel = [...releases.items].sort(
@@ -178,72 +165,47 @@ app.get("/dashboard", requireOwner, (req, res) => {
 });
 
 /* ===================== UPLOAD ===================== */
+app.post("/upload", requireOwner, (req, res) => {
+  upload.single("zip")(req, res, (err) => {
+    if (err) return res.status(400).send(err.message);
+    const version = "v" + (req.body.version || "").replace(/^v/i, "");
+    if (!req.file) return res.status(400).send("Aucun fichier reçu.");
 
-app.post("/upload", requireOwner, (req, res, next) => {
-  const m = upload.single("zip");
-  m(req, res, (err) => {
-    if (err) {
-      console.error("Multer error:", err);
-      return res.status(400).send(err.message || "Erreur d’upload");
-    }
-    const rawVersion = (req.body.version || "").trim();
-    if (!rawVersion) return res.status(400).send("Version manquante.");
-
-    const version = /^v/i.test(rawVersion) ? rawVersion : "v" + rawVersion;
-    if (!req.file) return res.status(400).send("Aucun fichier ZIP reçu.");
-
-    const desiredName = `bot-${version}.zip`;
-    const currentPath = path.join(UPLOAD_DIR, req.file.filename);
-    const targetPath = path.join(UPLOAD_DIR, desiredName);
-    if (req.file.filename !== desiredName) {
-      try {
-        fs.renameSync(currentPath, targetPath);
-      } catch (e) {
-        console.error(e);
-        return res.status(500).send("Impossible de renommer le fichier.");
-      }
-    }
-
+    const filename = `bot-${version}.zip`;
+    fs.renameSync(req.file.path, path.join(UPLOAD_DIR, filename));
     const createdAt = new Date().toISOString();
-    const existingIndex = releases.items.findIndex((r) => r.version === version);
-    const record = { version, filename: desiredName, createdAt };
 
-    if (existingIndex >= 0) releases.items[existingIndex] = record;
+    const record = { version, filename, createdAt };
+    const index = releases.items.findIndex((r) => r.version === version);
+    if (index >= 0) releases.items[index] = record;
     else releases.items.push(record);
-
     releases.latest = version;
     writeJSON(RELEASES_FILE, releases);
 
-    return res.redirect("/dashboard");
+    res.redirect("/dashboard");
   });
 });
 
-/* ===================== API POUR LES BOTS ===================== */
-
+/* ===================== API ===================== */
 app.get("/api/version", (req, res) => {
-  const botId = (req.query.bot_id || "unknown").toString();
-  const botVersion = (req.query.version || "unknown").toString();
-
-  stats.downloads = (stats.downloads || 0) + 1;
+  const botId = req.query.bot_id || "unknown";
+  const botVersion = req.query.version || "unknown";
+  stats.downloads++;
   stats.bots[botId] = { botVersion, lastCheck: new Date().toISOString() };
   writeJSON(STATS_FILE, stats);
 
   const rec = releases.items.find((r) => r.version === releases.latest);
-  const url =
-    rec &&
-    `${req.protocol}://${req.get("host")}/uploads/${encodeURIComponent(
-      rec.filename
-    )}`;
-
   res.json({
     version: releases.latest,
-    download: url,
-    message: "Dernière version disponible",
+    download: rec
+      ? `${req.protocol}://${req.get("host")}/uploads/${encodeURIComponent(
+          rec.filename
+        )}`
+      : null,
   });
 });
 
 /* ===================== START ===================== */
-
-app.listen(PORT, () => {
-  console.log(`✅ Panel en ligne sur http://localhost:${PORT}`);
-});
+app.listen(PORT, () =>
+  console.log(`✅ Panel en ligne sur http://localhost:${PORT}`)
+);

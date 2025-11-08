@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Accueil — Bot Updates</title>
-  <link rel="stylesheet" href="/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot Updates Panel</title>
+  <link rel="stylesheet" href="/style.css?v=2">
 </head>
 <body>
   <nav class="nav">
     <div class="brand">
       <div class="logo"></div>
-      <strong>Bot Updates</strong>
+      <span>Bot Updates</span>
     </div>
     <div class="actions">
       <% if (user) { %>
-        <a href="/dashboard" class="btn ghost">Dashboard</a>
+        <a href="/dashboard" class="btn primary">Dashboard</a>
         <a href="/logout" class="btn danger">Déconnexion</a>
       <% } else { %>
         <a href="/login" class="btn primary">Connexion Discord</a>
@@ -22,29 +22,27 @@
     </div>
   </nav>
 
-  <main class="container">
-    <section class="hero">
-      <h1>🚀 Gestionnaire de mise à jour</h1>
-      <p>Automatise les updates de ton bot Discord sans effort.</p>
-      <div class="version-pill">Dernière version : <%= version %></div>
-    </section>
+  <section class="hero">
+    <h1>🚀 Gestionnaire de mise à jour</h1>
+    <p>Automatise les updates de ton bot Discord facilement.</p>
+    <span class="version-pill">Dernière version : <%= version %></span>
+  </section>
 
-    <div class="grid">
-      <div class="card">
-        <h2>📦 Dernière release</h2>
-        <p><strong>Version :</strong> <%= version %></p>
-        <p><strong>Date :</strong> <%= date %></p>
-        <p><strong>Téléchargements :</strong> <%= downloads %></p>
-      </div>
-
-      <div class="card">
-        <h2>📊 Statistiques</h2>
-        <p>Total de bots : <%= totalBots %></p>
-        <p>À jour : <%= upToDate %></p>
-        <p>Obsolètes : <%= outdated %></p>
-      </div>
+  <div class="container grid">
+    <div class="card">
+      <h2>📦 Dernière Release</h2>
+      <p><strong>Version :</strong> <%= version %></p>
+      <p><strong>Date :</strong> <%= date %></p>
+      <p><strong>Téléchargements :</strong> <%= downloads %></p>
     </div>
-  </main>
+
+    <div class="card">
+      <h2>📊 Statistiques</h2>
+      <p>Total de bots : <%= totalBots %></p>
+      <p>À jour : <%= upToDate %></p>
+      <p>Obsolètes : <%= outdated %></p>
+    </div>
+  </div>
 
   <footer class="footer">© 2025 — Bot Updates Panel</footer>
 </body>
