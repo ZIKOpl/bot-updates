@@ -35,7 +35,7 @@
       border-radius: 10px;
     }
     .stat h3 { color: #00ffaa; margin: 5px; }
-    a.login {
+    .btn {
       display: inline-block;
       margin-top: 20px;
       color: #ffaa33;
@@ -43,14 +43,25 @@
       border: 1px solid #ffaa33;
       border-radius: 8px;
       padding: 10px 20px;
+      transition: 0.3s;
     }
-    a.login:hover { background: #ffaa33; color: #000; }
+    .btn:hover { background: #ffaa33; color: #000; }
+    .logout {
+      background: #ff3b3b;
+      border: 1px solid #ff3b3b;
+      margin-left: 10px;
+    }
+    .logout:hover {
+      background: #ff5c5c;
+      color: #000;
+    }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>🚀 Système de mise à jour</h1>
     <h2>Version actuelle : <%= version %></h2>
+
     <div class="stats">
       <div class="stat">
         <h3><%= totalBots %></h3>
@@ -72,9 +83,10 @@
   </div>
 
   <% if (!user) { %>
-  <a href="/login" class="login">Connexion Discord (Admin)</a>
+    <a href="/login" class="btn">Connexion Discord (Admin)</a>
   <% } else { %>
-  <a href="/dashboard" class="login">Aller au tableau de bord</a>
+    <a href="/dashboard" class="btn">Aller au tableau de bord</a>
+    <a href="/logout" class="btn logout">Se déconnecter</a>
   <% } %>
 
   <p style="margin-top:40px; color:#888;">© <%= new Date().getFullYear() %> • Système de mise à jour by ZIKO</p>

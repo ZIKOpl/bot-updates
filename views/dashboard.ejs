@@ -34,6 +34,10 @@
       border-radius: 8px;
       padding: 8px 14px;
       cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #ffbb55;
     }
     table {
       width: 100%;
@@ -46,17 +50,31 @@
       text-align: left;
     }
     th { color: #ffaa33; }
-    a.logout {
-      color: #ffaa33;
+    .topbar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+    .logout-btn {
+      background: #ff3b3b;
+      color: #fff;
+      padding: 8px 15px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
       text-decoration: none;
-      position: absolute;
-      top: 20px;
-      right: 20px;
+      transition: 0.3s;
+    }
+    .logout-btn:hover {
+      background: #ff5c5c;
     }
   </style>
 </head>
 <body>
-  <a href="/logout" class="logout">🚪 Déconnexion</a>
+  <div class="topbar">
+    <a href="/logout" class="logout-btn">🚪 Se déconnecter</a>
+  </div>
+
   <h1>🛠️ Tableau de bord</h1>
 
   <div class="section">
