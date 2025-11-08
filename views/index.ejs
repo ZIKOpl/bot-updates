@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bot Updates Panel</title>
-  <link rel="stylesheet" href="/style.css?v=2">
+  <link rel="stylesheet" href="/style.css?v=3">
 </head>
 <body>
   <nav class="nav">
@@ -22,25 +22,35 @@
     </div>
   </nav>
 
-  <section class="hero">
+  <section class="hero fade-in">
     <h1>🚀 Gestionnaire de mise à jour</h1>
     <p>Automatise les updates de ton bot Discord facilement.</p>
     <span class="version-pill">Dernière version : <%= version %></span>
   </section>
 
-  <div class="container grid">
-    <div class="card">
+  <div class="container dashboard-layout">
+    <div class="main-card glow-card">
       <h2>📦 Dernière Release</h2>
-      <p><strong>Version :</strong> <%= version %></p>
-      <p><strong>Date :</strong> <%= date %></p>
-      <p><strong>Téléchargements :</strong> <%= downloads %></p>
+      <div class="release-info">
+        <div><strong>Version :</strong> <%= version %></div>
+        <div><strong>Date :</strong> <%= date %></div>
+        <div><strong>Téléchargements :</strong> <%= downloads %></div>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>📊 Statistiques</h2>
-      <p>Total de bots : <%= totalBots %></p>
-      <p>À jour : <%= upToDate %></p>
-      <p>Obsolètes : <%= outdated %></p>
+    <div class="side-card">
+      <div class="card glow-mini">
+        <h3>📊 Statistiques</h3>
+        <p>Total de bots : <%= totalBots %></p>
+        <p>À jour : <%= upToDate %></p>
+        <p>Obsolètes : <%= outdated %></p>
+      </div>
+
+      <div class="card glow-mini">
+        <h3>⚙️ Status</h3>
+        <p>Panel actif</p>
+        <p>Dernier check : <%= new Date().toLocaleTimeString("fr-FR") %></p>
+      </div>
     </div>
   </div>
 

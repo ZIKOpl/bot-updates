@@ -299,3 +299,102 @@ body::after {
     font-size: 1.8rem;
   }
 }
+
+/* ========== Nouvelle disposition moderne ========== */
+
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.main-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  box-shadow: 0 0 25px rgba(108, 140, 255, 0.2);
+  backdrop-filter: blur(12px);
+  animation: fadeUp 0.8s ease both;
+}
+
+.side-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.glow-mini {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.5rem;
+  box-shadow: 0 0 20px rgba(108, 140, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.glow-mini:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 25px rgba(108, 140, 255, 0.25);
+}
+
+.dashboard-flex {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.upload-card {
+  flex: 1;
+  min-width: 380px;
+  max-width: 600px;
+}
+
+.timeline-card {
+  flex: 1;
+  min-width: 320px;
+}
+
+.timeline {
+  list-style: none;
+  margin: 1.2rem 0;
+  padding: 0;
+  border-left: 2px solid var(--accent);
+  padding-left: 1rem;
+}
+
+.timeline li {
+  position: relative;
+  margin-bottom: 1.2rem;
+}
+
+.timeline li .dot {
+  position: absolute;
+  left: -10px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent);
+}
+
+.timeline-content {
+  margin-left: 0.8rem;
+}
+
+.version-label {
+  font-weight: 600;
+  color: var(--accent-glow);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeUp 0.8s ease both;
+}
