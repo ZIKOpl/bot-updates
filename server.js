@@ -8,13 +8,13 @@ const multer = require("multer");
 
 const app = express();
 
-const OWNER_ID = process.env.OWNER_ID; // Ton ID Discord
+/* ===================== CONFIG ===================== */
+const OWNER_ID = process.env.OWNER_ID;
 const SESSION_SECRET = process.env.SESSION_SECRET || "super_secret_session";
 const PORT = process.env.PORT || 3000;
 
 const VERSION_FILE = path.join(__dirname, "version.txt");
 const RELEASES_DIR = path.join(__dirname, "releases");
-
 if (!fs.existsSync(RELEASES_DIR)) fs.mkdirSync(RELEASES_DIR);
 
 // Lecture de la version actuelle
@@ -59,7 +59,6 @@ function isOwner(req) {
 }
 
 /* ===================== ROUTES ===================== */
-
 app.get("/login", passport.authenticate("discord"));
 app.get(
   "/callback",
@@ -78,32 +77,36 @@ app.get("/dashboard", (req, res) => {
   res.render("dashboard", { user: req.user, version: currentVersion, files });
 });
 
-/* ===================== UPLOAD ===================== */
+/* ===================== VERSION MANAGEMENT ===================== */
 
-// Fonction pour incrémenter automatiquement les versions
-function incrementVersion(version) {
-  const match = version.match(/v(\d+)(?:\.(\d+))?/);
+function incrementMinor(version) {
+  const match = version.match(/v(\d+)\.(\d+)/);
   if (!match) return "v1.0";
+  let major = parseInt(match[1]);
+  let minor = parseInt(match[2]);
 
-  let major = parseInt(match[1], 10);
-  let minor = match[2] ? parseInt(match[2], 10) : 0;
-
-  // Si minor < 9 → on fait 2.1 → 2.2
-  // Sinon → 2.9 → 3.0
-  if (minor < 9) {
-    minor++;
-  } else {
+  if (minor < 9) minor++;
+  else {
     major++;
     minor = 0;
   }
-
   return `v${major}.${minor}`;
 }
+
+function incrementMajor(version) {
+  const match = version.match(/v(\d+)\.(\d+)/);
+  if (!match) return "v1.0";
+  let major = parseInt(match[1]);
+  major++;
+  return `v${major}.0`;
+}
+
+/* ===================== UPLOAD ===================== */
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, RELEASES_DIR),
   filename: (req, file, cb) => {
-    const newVersion = incrementVersion(currentVersion);
+    const newVersion = incrementMinor(currentVersion);
     const fileName = `bot-${newVersion}.zip`;
     currentVersion = newVersion;
     fs.writeFileSync(VERSION_FILE, newVersion, "utf8");
@@ -117,9 +120,16 @@ app.post("/upload", upload.single("file"), (req, res) => {
   res.redirect("/dashboard");
 });
 
-app.use("/releases", express.static(RELEASES_DIR));
+app.post("/newmajor", (req, res) => {
+  if (!isOwner(req)) return res.status(403).send("Forbidden");
+  currentVersion = incrementMajor(currentVersion);
+  fs.writeFileSync(VERSION_FILE, currentVersion, "utf8");
+  res.redirect("/dashboard");
+});
 
-/* ===================== API ===================== */
+/* ===================== STATIC & API ===================== */
+
+app.use("/releases", express.static(RELEASES_DIR));
 
 app.get("/api/version", (req, res) => {
   const version = currentVersion;
@@ -130,6 +140,6 @@ app.get("/api/version", (req, res) => {
 /* ===================== START ===================== */
 
 app.listen(PORT, () => {
-  console.log(`✅ Update panel prêt sur le port ${PORT}`);
+  console.log(`✅ Panel en ligne sur le port ${PORT}`);
   console.log(`🌐 Version actuelle : ${currentVersion}`);
 });

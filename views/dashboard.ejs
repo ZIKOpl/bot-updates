@@ -26,10 +26,7 @@
     }
     h2 { color: #7289da; margin-bottom: 10px; }
     p { color: #ccc; }
-    .version {
-      margin: 15px 0;
-      font-weight: 600;
-    }
+    .version { margin: 15px 0; font-weight: 600; }
     .drop-zone {
       border: 2px dashed #5865f2;
       border-radius: 10px;
@@ -45,14 +42,6 @@
       border-color: #7289da;
       color: #fff;
     }
-    ul { list-style: none; padding: 0; margin-top: 15px; text-align: left; }
-    li a {
-      color: #7289da;
-      text-decoration: none;
-      display: inline-block;
-      margin: 5px 0;
-    }
-    li a:hover { text-decoration: underline; }
     button {
       background: #5865f2;
       color: white;
@@ -65,11 +54,8 @@
       transition: 0.2s;
     }
     button:hover { background: #4752c4; }
+    .major { background: #2ecc71; }
     .logout { background: #e74c3c; margin-top: 20px; }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
   </style>
 </head>
 <body>
@@ -84,6 +70,10 @@
       </div>
       <input type="file" name="file" id="fileInput" accept=".zip" hidden />
       <button type="submit">📤 Envoyer</button>
+    </form>
+
+    <form action="/newmajor" method="POST" style="margin-top:15px;">
+      <button type="submit" class="major">🌟 Nouvelle version majeure</button>
     </form>
 
     <h3>Fichiers disponibles :</h3>
@@ -101,12 +91,12 @@
     const fileInput = document.getElementById("fileInput");
 
     dropZone.addEventListener("click", () => fileInput.click());
-    dropZone.addEventListener("dragover", (e) => {
+    dropZone.addEventListener("dragover", e => {
       e.preventDefault();
       dropZone.classList.add("dragover");
     });
     dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
-    dropZone.addEventListener("drop", (e) => {
+    dropZone.addEventListener("drop", e => {
       e.preventDefault();
       dropZone.classList.remove("dragover");
       fileInput.files = e.dataTransfer.files;
