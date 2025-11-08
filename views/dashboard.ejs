@@ -2,69 +2,47 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Dashboard — Bot Updates</title>
+  <title>Dashboard – Bot Updates</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="/public/style.css" />
+  <link rel="stylesheet" href="/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" defer></script>
 
   <script defer>
     document.addEventListener("DOMContentLoaded", () => {
-      const drop = document.getElementById("dropzone");
-      const input = document.getElementById("file");
-      const badge = document.getElementById("fileBadge");
       const form = document.getElementById("uploadForm");
-      const versionInput = document.getElementById("version");
-      const progress = document.getElementById("progress");
-      const bar = progress.querySelector(".bar");
-      const txt = progress.querySelector(".txt");
+      const txt = document.getElementById("uploadText");
+      const input = document.getElementById("fileInput");
 
-      const setBadge = (name) => {
-        badge.textContent = name || "Aucun fichier sélectionné";
-        badge.classList.toggle("has", !!name);
-      };
-
-      input.addEventListener("change", e => setBadge(e.target.files[0]?.name));
-      drop.addEventListener("click", () => input.click());
-
-      ["dragenter", "dragover"].forEach(ev => {
-        drop.addEventListener(ev, e => {
-          e.preventDefault();
-          drop.classList.add("active");
-        });
+      // 🖱️ Drag & Drop
+      const dropZone = document.querySelector(".drop-zone");
+      dropZone.addEventListener("click", () => input.click());
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("hover");
       });
-      ["dragleave", "drop"].forEach(ev => {
-        drop.addEventListener(ev, e => {
-          e.preventDefault();
-          drop.classList.remove("active");
-        });
-      });
-      drop.addEventListener("drop", e => {
-        if (e.dataTransfer.files?.length) {
+      dropZone.addEventListener("dragleave", () => dropZone.classList.remove("hover"));
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("hover");
+        const file = e.dataTransfer.files[0];
+        if (file) {
           input.files = e.dataTransfer.files;
-          setBadge(input.files[0].name);
+          txt.textContent = "📦 Fichier sélectionné : " + file.name;
         }
       });
 
-      form.addEventListener("submit", async e => {
+      input.addEventListener("change", () => {
+        if (input.files.length)
+          txt.textContent = "📦 Fichier sélectionné : " + input.files[0].name;
+      });
+
+      // 📤 Upload
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        if (!input.files.length) return alert("Sélectionne un fichier .zip");
-        if (!versionInput.value.trim()) return alert("Renseigne une version (ex: v2.3)");
-
-        progress.style.display = "block";
-        bar.style.width = "0%";
-        txt.textContent = "0%";
-
         const formData = new FormData(form);
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "/upload");
-
-        xhr.upload.onprogress = e => {
-          if (e.lengthComputable) {
-            const percent = Math.floor((e.loaded / e.total) * 100);
-            bar.style.width = percent + "%";
-            txt.textContent = percent + "%";
-          }
-        };
+        txt.textContent = "⏳ Upload en cours...";
 
         xhr.onload = () => {
           if (xhr.status === 200) {
@@ -76,7 +54,8 @@
         xhr.send(formData);
       });
 
-      const rel = <%= JSON.stringify(releases || []) %>;
+      // 📊 Graphique
+      const rel = <%- JSON.stringify(releases || []) %>;
       const ctx = document.getElementById("relChart");
       if (ctx && rel.length) {
         const labels = rel.map(r => r.version);
@@ -89,16 +68,14 @@
             datasets: [{
               label: "Taille (Mo)",
               data: values,
-              backgroundColor: "#6c8cff",
-              borderRadius: 6
+              backgroundColor: "#6c8cff"
             }]
           },
           options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
+            plugins: { legend: { labels: { color: "#ddd" } } },
             scales: {
               x: { ticks: { color: "#ccc" } },
-              y: { ticks: { color: "#ccc" }, beginAtZero: true }
+              y: { ticks: { color: "#ccc" } }
             }
           }
         });
@@ -109,48 +86,45 @@
 
 <body>
   <header class="nav">
-    <div class="brand"><div class="logo"></div> <span>Bot Updates</span></div>
+    <div class="brand"><div class="logo"></div><span>Bot Updates</span></div>
     <nav class="actions">
       <a class="btn ghost" href="/">Accueil</a>
-      <a class="btn danger" href="/logout">Se déconnecter</a>
+      <a class="btn danger" href="/logout">Déconnexion</a>
     </nav>
   </header>
 
   <main class="container">
-    <section class="hero small">
-      <h1>Panel d’administration</h1>
-      <p>Glisse ton .zip pour publier une nouvelle version.</p>
+    <section class="hero">
+      <h1>🛠️ Tableau de bord</h1>
+      <p>Bienvenue <%= user.username %> !</p>
       <div class="version-pill">Version actuelle : <strong><%= version %></strong></div>
     </section>
 
-    <section class="grid admin">
+    <section class="card">
+      <h2>⬆️ Mettre en ligne une nouvelle version</h2>
+      <form id="uploadForm" enctype="multipart/form-data" class="upload-form">
+        <div class="drop-zone">
+          <input id="fileInput" type="file" name="updateZip" accept=".zip" hidden />
+          <p id="uploadText">Glissez un fichier ZIP ici ou cliquez pour parcourir</p>
+        </div>
+        <input type="text" name="version" placeholder="Nom de la version (ex: v2.4)" required />
+        <button class="btn primary" type="submit">📤 Envoyer</button>
+      </form>
+    </section>
+
+    <section class="grid">
       <div class="card">
-        <h2>📦 Nouvelle release</h2>
-        <form id="uploadForm" enctype="multipart/form-data">
-          <div id="dropzone" class="drop">
-            <div class="title">Glisse ton fichier ici</div>
-            <div class="subtitle">ou clique pour parcourir</div>
-            <div class="badge" id="fileBadge">Aucun fichier sélectionné</div>
-            <input type="file" id="file" name="updateZip" accept=".zip" hidden />
-          </div>
-
-          <div class="row">
-            <label for="version">Numéro de version</label>
-            <input id="version" name="version" placeholder="ex: v2.4" required />
-          </div>
-
-          <div id="progress" class="progress" style="display:none;">
-            <div class="bar"></div>
-            <div class="txt">0%</div>
-          </div>
-
-          <button class="btn success">Publier</button>
-        </form>
-      </div>
-
-      <div class="card">
-        <h2>📈 Historique des versions</h2>
-        <canvas id="relChart" height="160"></canvas>
+        <h2>📊 Historique des versions</h2>
+        <% if (releases.length) { %>
+          <canvas id="relChart" height="150"></canvas>
+          <ul class="release-list">
+            <% releases.forEach(r => { %>
+              <li>📦 <strong><%= r.version %></strong> — <%= (r.size / 1024 / 1024).toFixed(2) %> Mo</li>
+            <% }) %>
+          </ul>
+        <% } else { %>
+          <p class="empty">Aucune version disponible.</p>
+        <% } %>
       </div>
     </section>
   </main>

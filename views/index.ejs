@@ -6,10 +6,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" defer></script>
+
   <script defer>
     document.addEventListener("DOMContentLoaded", () => {
-      const upToDate = <%= JSON.stringify(upToDate) %>;
-      const outdated = <%= JSON.stringify(outdated) %>;
+      // ✅ Fix EJS : utiliser <%- pour JSON brut
+      const upToDate = <%- JSON.stringify(upToDate) %>;
+      const outdated = <%- JSON.stringify(outdated) %>;
       const ctx = document.getElementById("versionChart");
       if (!ctx) return;
 
@@ -19,11 +21,18 @@
           labels: ["À jour", "Anciennes versions"],
           datasets: [{
             data: [upToDate, outdated],
-            backgroundColor: ["#4caf50", "#ff5252"]
+            backgroundColor: ["#4caf50", "#ff5252"],
+            borderColor: "#222",
+            borderWidth: 2
           }]
         },
         options: {
-          plugins: { legend: { labels: { color: "#ddd" } } }
+          plugins: {
+            legend: {
+              labels: { color: "#ddd" },
+              position: "bottom"
+            }
+          }
         }
       });
     });
@@ -45,7 +54,7 @@
 
   <main class="container">
     <section class="hero">
-      <h1>Gestion des mises à jour</h1>
+      <h1>🚀 Gestion des mises à jour</h1>
       <p>Suivi automatique des versions de votre bot Discord.</p>
       <div class="version-pill">Dernière version : <strong><%= version %></strong></div>
     </section>
