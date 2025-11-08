@@ -1,117 +1,43 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard - Bot Updates</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>Dashboard Admin</title>
   <style>
-    :root {
-      --bg: #0d1117;
-      --bg-card: #161b22;
-      --text: #c9d1d9;
-      --primary: #58a6ff;
-      --danger: #f85149;
-      --success: #3fb950;
-      --radius: 10px;
-    }
-
-    body {
-      margin: 0;
-      font-family: "Inter", sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    header {
-      width: 100%;
-      max-width: 800px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    h1 {
-      color: var(--primary);
-      font-weight: 600;
-    }
-
-    a.logout {
-      color: var(--danger);
-      text-decoration: none;
-      font-weight: 500;
-      transition: 0.2s;
-    }
-    a.logout:hover { text-decoration: underline; }
-
-    .card {
-      background-color: var(--bg-card);
-      border-radius: var(--radius);
-      padding: 30px;
-      width: 100%;
-      max-width: 800px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-      animation: fadeIn 0.5s ease;
-    }
-
-    .info p {
-      margin: 10px 0;
-      font-size: 1.1em;
-    }
-
-    .btn {
-      display: inline-block;
-      background-color: var(--primary);
-      color: white;
-      padding: 10px 20px;
-      border-radius: var(--radius);
-      text-decoration: none;
-      margin-top: 15px;
-      transition: 0.2s;
-    }
-
-    .btn:hover {
-      background-color: #1f6feb;
-    }
-
-    footer {
-      margin-top: 30px;
-      color: #8b949e;
-      font-size: 0.9em;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    body { background: #0e0e10; color: #fff; font-family: 'Segoe UI'; padding: 40px; }
+    h1 { color: #5865f2; }
+    form { margin: 20px 0; background: #18181b; padding: 20px; border-radius: 10px; }
+    input, button { margin: 5px; padding: 10px; border: none; border-radius: 5px; }
+    button { background: #5865f2; color: white; cursor: pointer; }
+    button:hover { background: #4752c4; }
+    .files, .stats { margin-top: 30px; background: #18181b; padding: 20px; border-radius: 10px; }
+    ul { list-style: none; padding: 0; }
+    li { margin: 5px 0; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>⚙️ Bot Update Dashboard</h1>
-    <a href="/logout" class="logout">Se déconnecter</a>
-  </header>
+  <h1>📂 Dashboard Admin</h1>
+  <p>Connecté en tant que <%= user.username %></p>
 
-  <div class="card">
-    <div class="info">
-      <p><strong>Connecté en tant que :</strong> <%= user.username %></p>
-      <p><strong>Version actuelle :</strong> <span style="color: var(--success)"><%= version %></span></p>
-      <p><strong>Lien de téléchargement :</strong><br>
-        <a href="<%= downloadUrl %>" target="_blank" style="color: var(--primary)"><%= downloadUrl %></a>
-      </p>
-    </div>
+  <form action="/upload" method="POST" enctype="multipart/form-data">
+    <input type="text" name="version" placeholder="Nouvelle version (ex: v2)" required />
+    <input type="file" name="updateZip" accept=".zip" required />
+    <button type="submit">📤 Envoyer la mise à jour</button>
+  </form>
 
-    <a href="/" class="btn">Retour à l’accueil</a>
+  <div class="stats">
+    <h2>📊 Statistiques</h2>
+    <p>Téléchargements : <%= stats.downloads %></p>
+    <p>Total bots : <%= Object.keys(stats.bots).length %></p>
   </div>
 
-  <footer>
-    <p>&copy; 2025 - Bot Update System | by <span style="color: var(--primary)">ZIKO</span></p>
-  </footer>
+  <div class="files">
+    <h2>📦 Fichiers disponibles</h2>
+    <ul>
+      <% files.forEach(f => { %>
+        <li><%= f %></li>
+      <% }) %>
+    </ul>
+  </div>
 </body>
 </html>

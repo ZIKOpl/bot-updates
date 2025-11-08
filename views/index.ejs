@@ -1,98 +1,85 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Bot Update Panel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🚀 Panel de mise à jour</title>
   <style>
     :root {
-      --bg: #0d1117;
-      --bg-card: #161b22;
-      --text: #c9d1d9;
-      --primary: #58a6ff;
-      --danger: #f85149;
-      --success: #3fb950;
-      --radius: 10px;
+      --bg: #0e0e10;
+      --card: #18181b;
+      --accent: #5865f2;
+      --success: #00ff90;
+      --danger: #ff4d4d;
+      --text: #ffffff;
+      --muted: #aaaaaa;
     }
-
+    * { box-sizing: border-box; }
     body {
-      margin: 0;
-      font-family: "Inter", sans-serif;
-      background-color: var(--bg);
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
       color: var(--text);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
       min-height: 100vh;
+      margin: 0;
     }
 
-    .container {
-      background-color: var(--bg-card);
-      padding: 30px;
-      border-radius: var(--radius);
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-      width: 90%;
-      max-width: 500px;
+    header { margin-top: 60px; text-align: center; }
+    h1 { color: var(--accent); font-size: 2.2em; }
+    p { color: var(--muted); }
+
+    .stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin-top: 40px; }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 25px;
+      width: 260px;
       text-align: center;
-      animation: fadeIn 0.6s ease;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.25);
+      transition: transform 0.2s ease;
     }
+    .card:hover { transform: translateY(-5px); }
+    .card h3 { margin: 0 0 10px 0; font-weight: 500; }
+    .card p { font-size: 1.8em; margin: 0; color: var(--success); font-weight: 700; }
 
-    h1 {
-      color: var(--primary);
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-
-    p {
-      margin: 8px 0;
-    }
-
-    a.button {
-      display: inline-block;
-      margin-top: 15px;
-      background: var(--primary);
-      color: white;
-      padding: 10px 20px;
-      border-radius: var(--radius);
+    .login-btn {
+      margin-top: 40px;
+      padding: 12px 22px;
+      background-color: var(--accent);
+      color: #fff;
+      border-radius: 10px;
       text-decoration: none;
-      transition: 0.2s;
+      font-weight: bold;
+      transition: background 0.2s;
     }
+    .login-btn:hover { background-color: #4752c4; }
 
-    a.button:hover {
-      background: #1f6feb;
-    }
-
-    footer {
-      margin-top: 25px;
-      font-size: 0.9em;
-      color: #8b949e;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .footer { margin-top: auto; padding: 20px; color: var(--muted); }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🤖 Bot Update Panel</h1>
-    <p>Version actuelle : <strong><%= version %></strong></p>
+  <header>
+    <h1>🚀 Système de mise à jour</h1>
+    <p>Version actuelle : <strong style="color: var(--success);"><%= version %></strong></p>
+  </header>
 
-    <% if (user) { %>
-      <p>Connecté en tant que <strong><%= user.username %></strong></p>
-      <a href="/dashboard" class="button">Accéder au dashboard</a>
-      <br><br>
-      <a href="/logout" style="color: var(--danger)">Se déconnecter</a>
-    <% } else { %>
-      <p>Connecte-toi avec Discord pour gérer tes mises à jour.</p>
-      <a href="/login" class="button">Se connecter avec Discord</a>
-    <% } %>
+  <section class="stats">
+    <div class="card"><h3>📦 Téléchargements</h3><p><%= downloads %></p></div>
+    <div class="card"><h3>🤖 Total bots</h3><p><%= totalBots %></p></div>
+    <div class="card"><h3>🟢 À jour</h3><p><%= upToDate %></p></div>
+    <div class="card"><h3>🔴 Obsolètes</h3><p><%= outdated %></p></div>
+  </section>
 
-    <footer>
-      <p>&copy; 2025 - Bot Update System | by <span style="color: var(--primary)">ZIKO</span></p>
-    </footer>
-  </div>
+  <% if (!user) { %>
+    <a href="/login" class="login-btn">🔐 Connexion admin</a>
+  <% } else { %>
+    <a href="/dashboard" class="login-btn">📂 Accéder au Dashboard</a>
+  <% } %>
+
+  <footer class="footer">
+    Système de mise à jour automatique • <%= new Date().getFullYear() %>
+  </footer>
 </body>
 </html>
