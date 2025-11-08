@@ -1,172 +1,119 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Bot Updates — Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
-  <style>
-    * { box-sizing: border-box }
-    body {
-      font-family: Inter, system-ui, sans-serif;
-      background: #0e1117;
-      color: #e5e7eb;
-      margin: 0;
-      min-height: 100vh;
-    }
-    .wrap {
-      max-width: 1000px;
-      margin: 40px auto;
-      padding: 0 20px;
-    }
-    h2, h3 { margin-top: 0 }
-    .btn {
-      background: #5865f2;
-      border: none;
-      color: white;
-      padding: 10px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: .2s;
-    }
-    .btn:hover { opacity: .9 }
-    .card {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 12px;
-      padding: 18px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 14px rgba(0,0,0,.3);
-    }
-    .input {
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      padding: 10px;
-      color: #e5e7eb;
-      width: 100%;
-      font-size: 15px;
-    }
-    .drop {
-      border: 2px dashed #3b82f6;
-      background: rgba(59,130,246,.08);
-      border-radius: 10px;
-      padding: 25px;
-      text-align: center;
-      transition: .2s;
-      margin-top: 10px;
-    }
-    .drop.drag { background: rgba(59,130,246,.18); border-color: #60a5fa; }
-    .drop.error { background: rgba(239,68,68,.1); border-color: #ef4444; }
-    .drop.ok { background: rgba(34,197,94,.1); border-color: #22c55e; }
-    .muted { color: #9ca3af; font-size: 14px; margin-top: 6px; }
-    ul { list-style: none; padding-left: 0 }
-    li { margin: 6px 0; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard — Bot Updates</title>
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h2>📦 Publier une mise à jour</h2>
-      <p class="muted">Connecté en tant que <b><%= user?.username %>#<%= user?.discriminator %></b></p>
-
-      <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data" novalidate>
-        <label for="ver">Version :</label>
-        <input id="ver" class="input" name="version" placeholder="ex: v2.3 ou 2.3" required/>
-
-        <div id="drop" class="drop">
-          <strong>Glisser-déposer</strong> ton <code>.zip</code> ici ou <u>clique</u> pour le choisir
-          <input id="file" type="file" name="zip" accept=".zip" style="display:none" required/>
-          <div id="fileName" class="muted">Aucun fichier sélectionné.</div>
-        </div>
-
-        <button class="btn" type="submit" style="margin-top:15px;width:100%">📤 Publier</button>
-      </form>
+  <nav class="nav">
+    <div class="brand">
+      <div class="logo"></div>
+      <strong>Bot Updates</strong>
     </div>
-
-    <div class="card">
-      <h3>📊 Statistiques</h3>
-      <p>Total de bots connus : <%= totalBots %></p>
-      <p>À jour : <%= upToDate %> — Obsolètes : <%= outdated %></p>
-
-      <h3>📜 Releases</h3>
-      <% if (releases.length) { %>
-        <ul>
-          <% releases.forEach(r => { %>
-            <li><b><%= r.version %></b> — <%= new Date(r.createdAt).toLocaleString('fr-FR') %></li>
-          <% }) %>
-        </ul>
-      <% } else { %>
-        <p class="muted">Aucune release publiée.</p>
-      <% } %>
+    <div class="actions">
+      <a href="/" class="btn ghost">Accueil</a>
+      <a href="/logout" class="btn danger">Déconnexion</a>
     </div>
-  </div>
+  </nav>
+
+  <main class="container">
+    <section class="hero">
+      <h1>📁 Tableau de bord</h1>
+      <p>Connecté en tant que <b><%= user.username %>#<%= user.discriminator %></b></p>
+      <div class="version-pill">Dernière version : <%= latest %></div>
+    </section>
+
+    <div class="grid">
+      <div class="card">
+        <h2>📤 Publier une mise à jour</h2>
+        <form id="uploadForm" class="upload-form" method="POST" action="/upload" enctype="multipart/form-data">
+          <input type="text" name="version" id="versionInput" placeholder="Ex: v2.3" required />
+
+          <div id="dropZone" class="drop-zone">
+            <p id="uploadText">Glisse ton fichier .zip ici ou clique pour le choisir</p>
+            <input type="file" name="zip" id="fileInput" accept=".zip" hidden />
+          </div>
+
+          <button class="btn primary" type="submit">📦 Publier</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>📊 Statistiques globales</h2>
+        <p>Total de bots : <%= totalBots %></p>
+        <p>À jour : <%= upToDate %></p>
+        <p>Obsolètes : <%= outdated %></p>
+      </div>
+
+      <div class="card">
+        <h2>📜 Historique des versions</h2>
+        <% if (releases.length) { %>
+          <div class="release-list">
+            <% releases.forEach(r => { %>
+              <div class="release-item">
+                <span><b><%= r.version %></b></span>
+                <span><%= new Date(r.createdAt).toLocaleString("fr-FR") %></span>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <p class="empty">Aucune version publiée pour le moment.</p>
+        <% } %>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">© 2025 — Bot Updates Panel</footer>
 
   <script>
-    const drop = document.getElementById('drop');
-    const fileInput = document.getElementById('file');
-    const fileName = document.getElementById('fileName');
-    const versionInput = document.getElementById('ver');
-    const form = document.getElementById('uploadForm');
+    const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("fileInput");
+    const uploadText = document.getElementById("uploadText");
+    const form = document.getElementById("uploadForm");
+    const versionInput = document.getElementById("versionInput");
 
-    let chosenFile = null;
+    dropZone.addEventListener("click", () => fileInput.click());
 
-    function resetState() {
-      drop.classList.remove('drag', 'error', 'ok');
-    }
-
-    function showError(msg) {
-      drop.classList.add('error');
-      fileName.textContent = msg;
-    }
-
-    function showOk(msg) {
-      drop.classList.add('ok');
-      fileName.textContent = msg;
-    }
-
-    drop.addEventListener('click', () => fileInput.click());
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
-      drop.addEventListener(ev, e => {
-        e.preventDefault();
-        e.stopPropagation();
+    ["dragenter", "dragover"].forEach(ev => {
+      dropZone.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation();
+        dropZone.classList.add("hover");
+        uploadText.textContent = "Dépose ton fichier ZIP ici...";
       });
     });
 
-    drop.addEventListener('dragenter', () => drop.classList.add('drag'));
-    drop.addEventListener('dragleave', () => resetState());
+    ["dragleave", "drop"].forEach(ev => {
+      dropZone.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation();
+        dropZone.classList.remove("hover");
+        uploadText.textContent = "Glisse ton fichier .zip ici ou clique pour le choisir";
+      });
+    });
 
-    drop.addEventListener('drop', e => {
-      resetState();
+    dropZone.addEventListener("drop", e => {
       const file = e.dataTransfer.files[0];
-      if (!file) return showError("Aucun fichier détecté.");
-      if (!file.name.endsWith('.zip')) return showError("Format invalide. ZIP requis.");
-      chosenFile = file;
-      showOk(file.name);
+      if (!file || !file.name.endsWith(".zip")) {
+        uploadText.textContent = "❌ Format invalide. ZIP requis.";
+        return;
+      }
       fileInput.files = e.dataTransfer.files;
+      uploadText.textContent = `✅ Fichier sélectionné : ${file.name}`;
     });
 
-    fileInput.addEventListener('change', () => {
-      const file = fileInput.files[0];
-      if (!file) return;
-      if (!file.name.endsWith('.zip')) return showError("Format invalide. ZIP requis.");
-      chosenFile = file;
-      showOk(file.name);
+    fileInput.addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (file) uploadText.textContent = `✅ Fichier sélectionné : ${file.name}`;
     });
 
-    form.addEventListener('submit', e => {
-      if (!chosenFile && !fileInput.files.length) {
+    form.addEventListener("submit", e => {
+      if (!fileInput.files.length) {
         e.preventDefault();
-        return showError("Merci de choisir un fichier ZIP.");
-      }
-      if (!versionInput.value.trim()) {
+        uploadText.textContent = "❌ Merci de sélectionner un fichier ZIP.";
+      } else if (!versionInput.value.trim()) {
         e.preventDefault();
-        return showError("Entre une version avant d’envoyer.");
-      }
-      if (!/^v/i.test(versionInput.value.trim())) {
-        versionInput.value = "v" + versionInput.value.trim();
+        uploadText.textContent = "❌ Merci d’indiquer une version.";
       }
     });
   </script>
