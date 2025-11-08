@@ -360,3 +360,81 @@ body::after {
     padding: 1.6rem;
   }
 }
+  /* ============================
+   🧠 Correction Upload Dashboard
+============================ */
+
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.upload-form input[type="text"] {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 0.95rem;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.upload-form input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent-glow);
+  box-shadow: 0 0 10px rgba(108, 140, 255, 0.3);
+}
+
+.drop-zone {
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius);
+  padding: 2rem;
+  text-align: center;
+  transition: all var(--transition);
+  background: rgba(108, 140, 255, 0.04);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.drop-zone p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.drop-zone.hover {
+  background: rgba(108, 140, 255, 0.1);
+  border-color: var(--accent-glow);
+  color: var(--accent-glow);
+  box-shadow: 0 0 20px rgba(108, 140, 255, 0.3);
+}
+
+/* ============================
+   💫 Animation séquentielle
+============================ */
+
+.fade-seq {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeSeq 0.7s ease forwards;
+}
+
+.fade-seq:nth-child(1) { animation-delay: 0.1s; }
+.fade-seq:nth-child(2) { animation-delay: 0.3s; }
+.fade-seq:nth-child(3) { animation-delay: 0.5s; }
+.fade-seq:nth-child(4) { animation-delay: 0.7s; }
+
+@keyframes fadeSeq {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

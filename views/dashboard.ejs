@@ -19,9 +19,9 @@
     <p>Gère les versions et les mises à jour de ton bot en toute simplicité.</p>
   </section>
 
-  <div class="container dashboard-flex">
+    <div class="container dashboard-flex">
     <!-- Upload Section -->
-    <div class="upload-card glow-card">
+    <div class="upload-card glow-card fade-seq">
       <h2>📤 Nouvelle Release</h2>
       <form class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
         <input type="text" name="version" placeholder="Numéro de version (ex : 2.1)" required>
@@ -34,7 +34,7 @@
     </div>
 
     <!-- Timeline Section -->
-    <div class="timeline-card glow-card">
+    <div class="timeline-card glow-card fade-seq">
       <h2>🕓 Historique des versions</h2>
       <% if (releases.length === 0) { %>
         <p class="empty">Aucune release disponible</p>
