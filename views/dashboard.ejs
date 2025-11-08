@@ -2,9 +2,9 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard — Bot Updates</title>
-  <link rel="stylesheet" href="public/style.css" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <nav class="nav">
@@ -20,9 +20,9 @@
 
   <main class="container">
     <section class="hero">
-      <h1>📁 Tableau de bord</h1>
+      <h1>⚙️ Tableau de bord</h1>
       <p>Connecté en tant que <b><%= user.username %>#<%= user.discriminator %></b></p>
-      <div class="version-pill">Dernière version : <%= latest %></div>
+      <div class="version-pill">Version actuelle : <%= latest %></div>
     </section>
 
     <div class="grid">
@@ -30,13 +30,11 @@
         <h2>📤 Publier une mise à jour</h2>
         <form id="uploadForm" class="upload-form" method="POST" action="/upload" enctype="multipart/form-data">
           <input type="text" name="version" id="versionInput" placeholder="Ex: v2.3" required />
-
           <div id="dropZone" class="drop-zone">
             <p id="uploadText">Glisse ton fichier .zip ici ou clique pour le choisir</p>
             <input type="file" name="zip" id="fileInput" accept=".zip" hidden />
           </div>
-
-          <button class="btn primary" type="submit">📦 Publier</button>
+          <button type="submit" class="btn primary">📦 Publier</button>
         </form>
       </div>
 
@@ -74,8 +72,8 @@
     const form = document.getElementById("uploadForm");
     const versionInput = document.getElementById("versionInput");
 
+    // Drag & drop fonctionnel
     dropZone.addEventListener("click", () => fileInput.click());
-
     ["dragenter", "dragover"].forEach(ev => {
       dropZone.addEventListener(ev, e => {
         e.preventDefault(); e.stopPropagation();
@@ -83,7 +81,6 @@
         uploadText.textContent = "Dépose ton fichier ZIP ici...";
       });
     });
-
     ["dragleave", "drop"].forEach(ev => {
       dropZone.addEventListener(ev, e => {
         e.preventDefault(); e.stopPropagation();
@@ -91,22 +88,19 @@
         uploadText.textContent = "Glisse ton fichier .zip ici ou clique pour le choisir";
       });
     });
-
     dropZone.addEventListener("drop", e => {
       const file = e.dataTransfer.files[0];
       if (!file || !file.name.endsWith(".zip")) {
-        uploadText.textContent = "❌ Format invalide. ZIP requis.";
+        uploadText.textContent = "❌ Format invalide (ZIP requis)";
         return;
       }
       fileInput.files = e.dataTransfer.files;
       uploadText.textContent = `✅ Fichier sélectionné : ${file.name}`;
     });
-
     fileInput.addEventListener("change", e => {
       const file = e.target.files[0];
       if (file) uploadText.textContent = `✅ Fichier sélectionné : ${file.name}`;
     });
-
     form.addEventListener("submit", e => {
       if (!fileInput.files.length) {
         e.preventDefault();
