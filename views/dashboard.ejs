@@ -1,19 +1,116 @@
-  <div class="box">
-  <h2>📦 Gestion des mises à jour</h2>
-  <p>Version actuelle : <strong><%= version %></strong></p>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Bot Updates</title>
+  <style>
+    body {
+      background-color: #0f1116;
+      color: white;
+      font-family: "Inter", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+      margin: 0;
+    }
+    .card {
+      background: #1a1d23;
+      padding: 40px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      animation: fadeIn 0.4s ease;
+    }
+    h2 { color: #7289da; margin-bottom: 10px; }
+    p { color: #ccc; }
+    .version {
+      margin: 15px 0;
+      font-weight: 600;
+    }
+    .drop-zone {
+      border: 2px dashed #5865f2;
+      border-radius: 10px;
+      padding: 40px;
+      background-color: #11131a;
+      color: #999;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-bottom: 20px;
+    }
+    .drop-zone.dragover {
+      background-color: #20232b;
+      border-color: #7289da;
+      color: #fff;
+    }
+    ul { list-style: none; padding: 0; margin-top: 15px; text-align: left; }
+    li a {
+      color: #7289da;
+      text-decoration: none;
+      display: inline-block;
+      margin: 5px 0;
+    }
+    li a:hover { text-decoration: underline; }
+    button {
+      background: #5865f2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.2s;
+    }
+    button:hover { background: #4752c4; }
+    .logout { background: #e74c3c; margin-top: 20px; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>📦 Tableau de bord</h2>
+    <p class="version">Version actuelle : <strong><%= version %></strong></p>
 
-  <form action="/upload" method="POST" enctype="multipart/form-data">
-    <input type="file" name="file" accept=".zip" required />
-    <button type="submit">📤 Envoyer le .zip</button>
-  </form>
+    <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+      <div id="dropZone" class="drop-zone">
+        Glissez et déposez votre fichier ZIP ici<br>
+        <small>ou cliquez pour le sélectionner</small>
+      </div>
+      <input type="file" name="file" id="fileInput" accept=".zip" hidden />
+      <button type="submit">📤 Envoyer</button>
+    </form>
 
-  <h3>Fichiers disponibles :</h3>
-  <ul>
-    <% files.forEach(file => { %>
-      <li><a href="/releases/<%= file %>"><%= file %></a></li>
-    <% }) %>
-  </ul>
+    <h3>Fichiers disponibles :</h3>
+    <ul>
+      <% files.forEach(file => { %>
+        <li>🔗 <a href="/releases/<%= file %>" target="_blank"><%= file %></a></li>
+      <% }) %>
+    </ul>
 
-  <br>
-  <a href="/logout"><button>Se déconnecter</button></a>
-</div>
+    <a href="/logout"><button class="logout">Se déconnecter</button></a>
+  </div>
+
+  <script>
+    const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("fileInput");
+
+    dropZone.addEventListener("click", () => fileInput.click());
+    dropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropZone.classList.add("dragover");
+    });
+    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("dragover");
+      fileInput.files = e.dataTransfer.files;
+    });
+  </script>
+</body>
+</html>

@@ -1,5 +1,50 @@
-<div class="box">
-  <h2>🚫 Accès refusé</h2>
-  <p>Seul le propriétaire du bot peut accéder à ce tableau de bord.</p>
-  <a href="/"><button>Retour à l'accueil</button></a>
-</div>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Accès refusé</title>
+  <style>
+    body {
+      background-color: #0f1116;
+      color: white;
+      font-family: "Inter", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    .box {
+      background: #1a1d23;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      width: 90%;
+      max-width: 400px;
+    }
+    h2 { color: #e74c3c; }
+    p { color: #ccc; }
+    button {
+      background: #5865f2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: 0.2s;
+    }
+    button:hover { background: #4752c4; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>🚫 Accès refusé</h2>
+    <p>Seul le propriétaire du bot peut accéder à ce tableau de bord.</p>
+    <a href="/"><button>Retour à l'accueil</button></a>
+  </div>
+</body>
+</html>
