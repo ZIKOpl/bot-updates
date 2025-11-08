@@ -1,156 +1,209 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard - Bot Updates</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: "Poppins", sans-serif;
-      background: linear-gradient(135deg, #0f1124, #17192e);
-      color: white;
-      margin: 0;
-    }
-    header {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
-    .card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 15px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .btn {
-      padding: 8px 16px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.2s;
-    }
-    .btn-primary {
-      background: #5865f2;
-      color: white;
-    }
-    .btn-primary:hover {
-      background: #4752c4;
-    }
-    input, .dropzone {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px;
-      padding: 10px;
-      color: white;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .dropzone {
-      text-align: center;
-      border: 2px dashed rgba(255,255,255,0.2);
-      transition: 0.3s;
-      padding: 40px 10px;
-    }
-    .dropzone.dragover {
-      border-color: #5865f2;
-      background: rgba(88,101,242,0.1);
-    }
-    .progress {
-      height: 8px;
-      width: 100%;
-      background: rgba(255,255,255,0.1);
-      border-radius: 5px;
-      overflow: hidden;
-      margin-top: 10px;
-    }
-    .progress-bar {
-      height: 100%;
-      width: 0;
-      background: #5865f2;
-      transition: 0.3s;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Dashboard Admin</h1>
-    <a href="/logout" class="btn btn-primary">Se déconnecter</a>
-  </header>
+  <meta charset="utf-8" />
+  <title>Dashboard — Bot Updates</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/public/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" defer></script>
 
-  <div class="container">
-    <% if (!isOwner) { %>
-      <div class="card" style="text-align:center;">
-        <h2>🚫 Accès refusé</h2>
-        <p>Vous n’êtes pas autorisé à voir cette page.</p>
-      </div>
-    <% } else { %>
-      <div class="card">
-        <h2>Statistiques</h2>
-        <canvas id="chart" height="120"></canvas>
-      </div>
+  <script defer>
+    document.addEventListener("DOMContentLoaded", () => {
+      const drop = document.getElementById("dropzone");
+      const input = document.getElementById("file");
+      const badge = document.getElementById("fileBadge");
+      const form = document.getElementById("uploadForm");
+      const versionInput = document.getElementById("version");
+      const progress = document.getElementById("progress");
+      const bar = progress.querySelector(".bar");
+      const txt = progress.querySelector(".txt");
 
-      <div class="card">
-        <h2>Uploader une version</h2>
-        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
-          <input type="text" name="version" placeholder="Version (ex: v2.3)" required />
-          <div id="dropzone" class="dropzone">Glissez votre .zip ici ou cliquez pour sélectionner</div>
-          <input id="fileInput" name="updateZip" type="file" accept=".zip" style="display:none;">
-          <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
-          <button class="btn btn-primary" type="submit" style="margin-top:10px;">Uploader</button>
-        </form>
-      </div>
-    <% } %>
-  </div>
-
-  <script>
-    const labels = JSON.parse('<%- chartLabels %>');
-    const values = JSON.parse('<%- chartValues %>');
-
-    new Chart(document.getElementById("chart"), {
-      type: "bar",
-      data: { labels, datasets: [{ label: "Mises à jour par jour", data: values, backgroundColor: "#5865f2" }] },
-      options: { scales: { y: { beginAtZero: true } } }
-    });
-
-    const dropzone = document.getElementById("dropzone");
-    const fileInput = document.getElementById("fileInput");
-    const progressBar = document.getElementById("progressBar");
-
-    dropzone.addEventListener("click", () => fileInput.click());
-    dropzone.addEventListener("dragover", e => { e.preventDefault(); dropzone.classList.add("dragover"); });
-    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
-    dropzone.addEventListener("drop", e => {
-      e.preventDefault(); dropzone.classList.remove("dragover");
-      fileInput.files = e.dataTransfer.files;
-      dropzone.textContent = e.dataTransfer.files[0].name;
-    });
-
-    const form = document.getElementById("uploadForm");
-    form.addEventListener("submit", async e => {
-      e.preventDefault();
-      const data = new FormData(form);
-      const req = new XMLHttpRequest();
-      req.open("POST", "/upload");
-      req.upload.onprogress = e => {
-        if (e.lengthComputable) {
-          progressBar.style.width = `${(e.loaded / e.total) * 100}%`;
-        }
+      // 💡 Sélection et drag & drop
+      const setBadge = (name) => {
+        badge.textContent = name || "Aucun fichier sélectionné";
+        badge.classList.toggle("has", !!name);
       };
-      req.onload = () => window.location.reload();
-      req.send(data);
+
+      input.addEventListener("change", e => {
+        setBadge(e.target.files[0]?.name);
+      });
+
+      drop.addEventListener("click", () => input.click());
+      ["dragenter", "dragover"].forEach(ev => {
+        drop.addEventListener(ev, e => {
+          e.preventDefault();
+          e.stopPropagation();
+          drop.classList.add("active");
+        });
+      });
+
+      ["dragleave", "drop"].forEach(ev => {
+        drop.addEventListener(ev, e => {
+          e.preventDefault();
+          e.stopPropagation();
+          drop.classList.remove("active");
+        });
+      });
+
+      drop.addEventListener("drop", e => {
+        if (e.dataTransfer.files?.length) {
+          input.files = e.dataTransfer.files;
+          setBadge(input.files[0].name);
+        }
+      });
+
+      // 📦 Envoi du fichier
+      form.addEventListener("submit", async e => {
+        e.preventDefault();
+
+        if (!input.files.length) return alert("Sélectionne un fichier .zip");
+        if (!versionInput.value.trim()) return alert("Renseigne une version (ex: v2.3)");
+
+        progress.style.display = "block";
+        bar.style.width = "0%";
+        txt.textContent = "0%";
+
+        const formData = new FormData(form);
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/upload");
+
+        xhr.upload.onprogress = e => {
+          if (e.lengthComputable) {
+            const percent = Math.floor((e.loaded / e.total) * 100);
+            bar.style.width = percent + "%";
+            txt.textContent = percent + "%";
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            txt.textContent = "✅ Upload terminé";
+            setTimeout(() => window.location.reload(), 800);
+          } else {
+            alert("Erreur d’upload : " + xhr.responseText);
+          }
+        };
+
+        xhr.onerror = () => alert("Erreur réseau pendant l’envoi.");
+        xhr.send(formData);
+      });
+
+      // 📊 Graphique des releases
+      const rel = JSON.parse('<%- JSON.stringify(releases || []) %>');
+      const ctx = document.getElementById("relChart");
+      if (ctx && rel.length) {
+        const labels = rel.map(r => r.version);
+        const values = rel.map(r => Number((r.size / 1024 / 1024).toFixed(2)));
+
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [{
+              label: "Taille (Mo)",
+              data: values,
+              backgroundColor: "#6c8cff",
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: ctx => ctx.raw + " Mo"
+                }
+              }
+            },
+            scales: {
+              x: { ticks: { color: "#ccc" } },
+              y: { ticks: { color: "#ccc" }, beginAtZero: true }
+            }
+          }
+        });
+      }
     });
   </script>
+</head>
+
+<body>
+  <header class="nav">
+    <div class="brand">
+      <div class="logo"></div> <span>Bot Updates</span>
+    </div>
+    <nav class="actions">
+      <a class="btn ghost" href="/">Accueil</a>
+      <a class="btn danger" href="/logout">Se déconnecter</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero small">
+      <h1>Panel d’administration</h1>
+      <p>Gère ici les nouvelles versions du bot et leur distribution automatique.</p>
+      <div class="version-pill">Version actuelle : <strong><%= version %></strong></div>
+    </section>
+
+    <section class="grid admin">
+      <!-- Zone upload -->
+      <div class="card">
+        <h2>📦 Nouvelle release</h2>
+        <form id="uploadForm" class="uploader" enctype="multipart/form-data" method="post" action="/upload">
+          <div id="dropzone" class="drop">
+            <div class="icon"></div>
+            <div class="title">Glisse ton fichier ici</div>
+            <div class="subtitle">ou clique pour parcourir</div>
+            <div class="badge" id="fileBadge">Aucun fichier sélectionné</div>
+            <input type="file" id="file" name="updateZip" accept=".zip" hidden />
+          </div>
+
+          <div class="row">
+            <label for="version">Numéro de version</label>
+            <input id="version" name="version" placeholder="ex: v2.4" required />
+          </div>
+
+          <div id="progress" class="progress" style="display:none;">
+            <div class="bar"></div>
+            <div class="txt">0%</div>
+          </div>
+
+          <button class="btn success">Publier la version</button>
+        </form>
+      </div>
+
+      <!-- Historique -->
+      <div class="card">
+        <h2>🕒 Historique des releases</h2>
+        <div class="release-list admin">
+          <% if (!files || files.length === 0) { %>
+            <div class="empty">Aucune version publiée.</div>
+          <% } else { %>
+            <% files.forEach(f => { %>
+              <div class="release-item admin">
+                <div>
+                  <div class="v"><%= f.version %></div>
+                  <div class="meta"><%= (f.size/1024/1024).toFixed(2) %> Mo</div>
+                </div>
+                <div class="actions">
+                  <a class="btn ghost" href="<%= f.url %>">Télécharger</a>
+                </div>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Graphique -->
+      <div class="card">
+        <h2>📈 Taille des versions</h2>
+        <canvas id="relChart" height="160"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>© <script>document.write(new Date().getFullYear())</script> Bot Updates</span>
+  </footer>
 </body>
 </html>
