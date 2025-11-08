@@ -1,29 +1,6 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Accès refusé</title>
-  <style>
-    body {
-      background: #0e0e0e;
-      color: #fff;
-      text-align: center;
-      font-family: "Poppins", sans-serif;
-      padding-top: 100px;
-    }
-    h1 { color: #ff3b3b; }
-    a {
-      color: #ffaa33;
-      text-decoration: none;
-      border: 1px solid #ffaa33;
-      border-radius: 8px;
-      padding: 10px 20px;
-    }
-  </style>
-</head>
-<body>
-  <h1>🚫 Accès refusé</h1>
-  <p>Tu n’es pas autorisé à accéder à cette page.</p>
-  <a href="/">Retour</a>
-</body>
-</html>
+<% layout('layout') %>
+<div class="box">
+  <h2>🚫 Accès refusé</h2>
+  <p>Seul le propriétaire du bot peut accéder à ce tableau de bord.</p>
+  <a href="/"><button>Retour à l'accueil</button></a>
+</div>

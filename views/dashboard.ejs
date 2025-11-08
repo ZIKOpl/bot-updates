@@ -1,97 +1,20 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Dashboard - Mises à jour</title>
-  <style>
-    body {
-      font-family: "Poppins", sans-serif;
-      background: #0b0b0b;
-      color: #fff;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 { text-align: center; color: #ffaa33; }
-    .section {
-      background: #181818;
-      border-radius: 12px;
-      padding: 25px;
-      margin-bottom: 25px;
-      box-shadow: 0 0 10px rgba(255, 136, 0, 0.3);
-    }
-    form { display: flex; gap: 10px; justify-content: center; }
-    input[type="text"] {
-      background: #111;
-      border: 1px solid #333;
-      color: #fff;
-      padding: 8px 10px;
-      border-radius: 8px;
-    }
-    button {
-      background: #ffaa33;
-      color: #000;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 14px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover {
-      background: #ffbb55;
-    }
-    table {
-      width: 100%;
-      margin-top: 10px;
-      border-collapse: collapse;
-    }
-    th, td {
-      border-bottom: 1px solid #333;
-      padding: 8px;
-      text-align: left;
-    }
-    th { color: #ffaa33; }
-    .topbar {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 10px;
-    }
-    .logout-btn {
-      background: #ff3b3b;
-      color: #fff;
-      padding: 8px 15px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      transition: 0.3s;
-    }
-    .logout-btn:hover {
-      background: #ff5c5c;
-    }
-  </style>
-</head>
-<body>
-  <div class="topbar">
-    <a href="/logout" class="logout-btn">🚪 Se déconnecter</a>
-  </div>
+<% layout('layout') %>
+<div class="box">
+  <h2>📦 Gestion des mises à jour</h2>
+  <p>Version actuelle : <strong><%= version %></strong></p>
 
-  <h1>🛠️ Tableau de bord</h1>
+  <form action="/upload" method="POST" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".zip" required />
+    <button type="submit">📤 Envoyer le .zip</button>
+  </form>
 
-  <div class="section">
-    <h2>⚙️ Version actuelle</h2>
-    <p>Version en ligne : <strong style="color:#00ffaa"><%= version %></strong></p>
-    <form method="POST" action="/setversion">
-      <input type="text" name="version" placeholder="Nouvelle version (ex: v2.1)" required>
-      <button type="submit">Mettre à jour</button>
-    </form>
-  </div>
+  <h3>Fichiers disponibles :</h3>
+  <ul>
+    <% files.forEach(file => { %>
+      <li><a href="/releases/<%= file %>"><%= file %></a></li>
+    <% }) %>
+  </ul>
 
-  <div class="section">
-    <h2>📊 Statistiques</h2>
-    <table>
-      <tr><th>Total téléchargements</th><td><%= stats.downloads %></td></tr>
-      <tr><th>Total bots enregistrés</th><td><%= Object.keys(stats.bots).length %></td></tr>
-    </table>
-  </div>
-</body>
-</html>
+  <br>
+  <a href="/logout"><button>Se déconnecter</button></a>
+</div>
