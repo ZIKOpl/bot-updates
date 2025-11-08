@@ -4,241 +4,170 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Bot Updates — Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
   <style>
-    :root{--bg:#0b0f16;--card:#121826;--muted:#9aa4b2;--text:#e5e7eb;--brand:#7c5cff;--border:#1f2937;--ok:#22c55e;--warn:#f59e0b;--danger:#ef4444}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(80% 80% at 50% 0%, rgba(124,92,255,.15), transparent 60%),var(--bg);color:var(--text)}
-    .wrap{max-width:1100px;margin:38px auto;padding:0 20px}
-    .nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
-    .row{display:flex;gap:10px;align-items:center}
-    .tag{background:rgba(124,92,255,.15);color:#c7b8ff;border:1px solid rgba(124,92,255,.35);padding:6px 10px;border-radius:999px;font-weight:700;font-size:12px}
-    .btn{appearance:none;border:none;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--brand),#4f46e5);box-shadow:0 10px 30px rgba(79,70,229,.25);transition:transform .15s ease}
-    .btn:hover{transform:translateY(-1px)}
-    .btn.secondary{background:#1f2937}
-    .grid{display:grid;grid-template-columns:1fr .8fr;gap:16px}
-    .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
-    .muted{color:var(--muted)}
-    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px}
-    .pill{display:flex;flex-direction:column;gap:6px;background:#0f1522;border:1px solid #1f2937;border-radius:12px;padding:12px 14px}
-    .pill b{font-size:22px}
-    .list{margin-top:12px;border-top:1px dashed var(--border)}
-    .item{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px dashed var(--border)}
-    code{background:#0f1522;border:1px solid #1f2937;border-radius:8px;padding:2px 6px}
-    .drop{
-      border:2px dashed #3b82f6;background:rgba(59,130,246,.06);border-radius:14px;padding:16px;text-align:center;transition:all .15s; outline:none
+    * { box-sizing: border-box }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: #0e1117;
+      color: #e5e7eb;
+      margin: 0;
+      min-height: 100vh;
     }
-    .drop.drag{background:rgba(59,130,246,.12);border-color:#60a5fa}
-    .drop.error{background:rgba(239,68,68,.08);border-color:#ef4444}
-    .drop.ok{background:rgba(34,197,94,.08);border-color:#22c55e}
-    .input{width:100%;padding:12px;border-radius:10px;background:#0f1522;border:1px solid #1f2937;color:#e5e7eb}
-    .toast{margin-top:10px;font-size:13px}
-    .toast.err{color:#ffb7b7}
-    .toast.ok{color:#b4f7c7}
-    .hint{font-size:12px;color:#9aa4b2;margin-top:6px}
-    @media(max-width:1000px){.grid{grid-template-columns:1fr}}
+    .wrap {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    h2, h3 { margin-top: 0 }
+    .btn {
+      background: #5865f2;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: .2s;
+    }
+    .btn:hover { opacity: .9 }
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 14px rgba(0,0,0,.3);
+    }
+    .input {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 10px;
+      color: #e5e7eb;
+      width: 100%;
+      font-size: 15px;
+    }
+    .drop {
+      border: 2px dashed #3b82f6;
+      background: rgba(59,130,246,.08);
+      border-radius: 10px;
+      padding: 25px;
+      text-align: center;
+      transition: .2s;
+      margin-top: 10px;
+    }
+    .drop.drag { background: rgba(59,130,246,.18); border-color: #60a5fa; }
+    .drop.error { background: rgba(239,68,68,.1); border-color: #ef4444; }
+    .drop.ok { background: rgba(34,197,94,.1); border-color: #22c55e; }
+    .muted { color: #9ca3af; font-size: 14px; margin-top: 6px; }
+    ul { list-style: none; padding-left: 0 }
+    li { margin: 6px 0; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="nav">
-      <div class="row">
-        <span class="tag">Dashboard</span>
-        <span class="tag">Connecté en tant que <%= user?.username %>#<%= user?.discriminator %></span>
-      </div>
-      <div class="row">
-        <a class="btn secondary" href="/">Accueil</a>
-        <a class="btn" href="/logout">Déconnexion</a>
-      </div>
-    </div>
+    <div class="card">
+      <h2>📦 Publier une mise à jour</h2>
+      <p class="muted">Connecté en tant que <b><%= user?.username %>#<%= user?.discriminator %></b></p>
 
-    <div class="grid">
-      <div class="card">
-        <h2>Dernière version : <code><%= latest %></code></h2>
-        <p class="muted">Upload d’une nouvelle release (ZIP). Le fichier sera renommé automatiquement.</p>
+      <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data" novalidate>
+        <label for="ver">Version :</label>
+        <input id="ver" class="input" name="version" placeholder="ex: v2.3 ou 2.3" required/>
 
-        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data" novalidate>
-          <div style="display:grid;grid-template-columns:1fr 180px;gap:12px;margin:12px 0">
-            <input class="input" name="version" id="ver" placeholder="Ex: v2.3 ou 2.3" required/>
-            <button class="btn" type="submit" id="submitBtn">Publier</button>
-          </div>
-
-          <div id="drop" class="drop" tabindex="0" aria-label="Zone de glisser-déposer">
-            <strong>Glisser-déposer</strong> votre <code>.zip</code> ici ou cliquez pour choisir.
-            <input id="file" type="file" name="zip" accept=".zip" style="display:none" required/>
-            <div id="info" class="muted" style="margin-top:8px">Aucun fichier sélectionné.</div>
-            <div id="toast" class="toast" role="status" aria-live="polite"></div>
-            <div class="hint">Astuce : si la version est remplie et le ZIP sélectionné, l’envoi démarre automatiquement.</div>
-          </div>
-        </form>
-      </div>
-
-      <div class="card">
-        <h3>Statistiques</h3>
-        <div class="stats">
-          <div class="pill"><b><%= Object.keys(stats.bots).length %></b><small>Bots vus</small></div>
-          <div class="pill"><b><%= upToDate %></b><small>À jour</small></div>
-          <div class="pill"><b><%= outdated %></b><small>Obsolètes</small></div>
+        <div id="drop" class="drop">
+          <strong>Glisser-déposer</strong> ton <code>.zip</code> ici ou <u>clique</u> pour le choisir
+          <input id="file" type="file" name="zip" accept=".zip" style="display:none" required/>
+          <div id="fileName" class="muted">Aucun fichier sélectionné.</div>
         </div>
-        <canvas id="chart" style="margin-top:12px;height:240px"></canvas>
-      </div>
+
+        <button class="btn" type="submit" style="margin-top:15px;width:100%">📤 Publier</button>
+      </form>
     </div>
 
-    <div class="card" style="margin-top:16px">
-      <h3>Releases</h3>
-      <div class="list">
-        <% releases.forEach(r => { %>
-          <div class="item">
-            <div>
-              <div><strong><%= r.version %></strong></div>
-              <div class="muted">Fichier : <code><%= r.filename %></code></div>
-            </div>
-            <div class="muted"><%= new Date(r.createdAt).toLocaleString("fr-FR",{dateStyle:"medium", timeStyle:"short"}) %></div>
-          </div>
-        <% }) %>
-        <% if (releases.length === 0) { %>
-          <div class="item"><span class="muted">Aucune release publiée pour l’instant.</span></div>
-        <% } %>
-      </div>
+    <div class="card">
+      <h3>📊 Statistiques</h3>
+      <p>Total de bots connus : <%= totalBots %></p>
+      <p>À jour : <%= upToDate %> — Obsolètes : <%= outdated %></p>
+
+      <h3>📜 Releases</h3>
+      <% if (releases.length) { %>
+        <ul>
+          <% releases.forEach(r => { %>
+            <li><b><%= r.version %></b> — <%= new Date(r.createdAt).toLocaleString('fr-FR') %></li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p class="muted">Aucune release publiée.</p>
+      <% } %>
     </div>
   </div>
 
   <script>
-    // ----- Chart (stat) -----
-    (function(){
-      const ctx = document.getElementById('chart').getContext('2d');
-      const upToDate = Number(<%= JSON.stringify(upToDate) %>);
-      const outdated = Number(<%= JSON.stringify(outdated) %>);
-      new Chart(ctx,{ type:'bar', data:{
-        labels:['À jour','Obsolètes'],
-        datasets:[{ data:[upToDate,outdated], backgroundColor:['#22c55e','#f59e0b'], borderWidth:0 }]
-      }, options:{ plugins:{ legend:{ display:false } }, scales:{
-        x:{ ticks:{ color:'#e5e7eb' }, grid:{ color:'rgba(255,255,255,.06)'} },
-        y:{ ticks:{ color:'#e5e7eb' }, grid:{ color:'rgba(255,255,255,.06)'} }
-      }});
-    })();
-
-    // ----- Drag & Drop ultra robuste -----
-    const form = document.getElementById('uploadForm');
-    const versionInput = document.getElementById('ver');
-    const submitBtn = document.getElementById('submitBtn');
     const drop = document.getElementById('drop');
-    const file = document.getElementById('file');
-    const info = document.getElementById('info');
-    const toast = document.getElementById('toast');
+    const fileInput = document.getElementById('file');
+    const fileName = document.getElementById('fileName');
+    const versionInput = document.getElementById('ver');
+    const form = document.getElementById('uploadForm');
 
     let chosenFile = null;
 
-    function setToast(msg, type){
-      toast.textContent = msg || '';
-      toast.className = 'toast ' + (type || '');
-    }
-    function setDropState(state){
-      drop.classList.remove('drag','error','ok');
-      if (state) drop.classList.add(state);
-    }
-    function isZip(f){
-      if (!f) return false;
-      const name = (f.name || '').toLowerCase();
-      return name.endsWith('.zip') || f.type === 'application/zip' || f.type === 'application/x-zip-compressed';
-    }
-    function maybeAutoSubmit(){
-      if (versionInput.value.trim() && chosenFile){
-        // auto submit
-        setToast('Envoi…', 'ok');
-        form.requestSubmit ? form.requestSubmit() : form.submit();
-      }
+    function resetState() {
+      drop.classList.remove('drag', 'error', 'ok');
     }
 
-    // CLICK to open
-    drop.addEventListener('click', () => file.click());
-    drop.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); }
-    });
+    function showError(msg) {
+      drop.classList.add('error');
+      fileName.textContent = msg;
+    }
 
-    // Drag events (need ALL prevents)
-    ['dragenter','dragover','dragleave','drop'].forEach(ev=>{
-      drop.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); });
-    });
-    drop.addEventListener('dragenter', () => setDropState('drag'));
-    drop.addEventListener('dragover', () => setDropState('drag'));
-    drop.addEventListener('dragleave', () => setDropState());
+    function showOk(msg) {
+      drop.classList.add('ok');
+      fileName.textContent = msg;
+    }
 
-    drop.addEventListener('drop', (e) => {
-      setDropState();
-      const items = e.dataTransfer.items;
-      let f = null;
-      if (items && items.length && items[0].kind === 'file') {
-        f = items[0].getAsFile();
-      } else if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        f = e.dataTransfer.files[0];
-      }
-      if (!f) {
-        setToast('Aucun fichier détecté.', 'err');
-        setDropState('error');
-        return;
-      }
-      if (!isZip(f)) {
-        setToast('Seuls les fichiers .zip sont acceptés.', 'err');
-        setDropState('error');
-        return;
-      }
-      // Assign to the hidden input (FileList is readonly: use DataTransfer)
-      const dt = new DataTransfer();
-      dt.items.add(f);
-      file.files = dt.files;
-      chosenFile = f;
-      info.textContent = f.name;
-      setToast('Fichier prêt : ' + f.name, 'ok');
-      setDropState('ok');
-      maybeAutoSubmit();
-    });
+    drop.addEventListener('click', () => fileInput.click());
 
-    // Manual file picker change
-    file.addEventListener('change', () => {
-      const f = file.files[0];
-      if (!f) {
-        chosenFile = null;
-        info.textContent = 'Aucun fichier sélectionné.';
-        return;
-      }
-      if (!isZip(f)) {
-        file.value = '';
-        chosenFile = null;
-        info.textContent = 'Aucun fichier sélectionné.';
-        setToast('Seuls les fichiers .zip sont acceptés.', 'err');
-        setDropState('error');
-        return;
-      }
-      chosenFile = f;
-      info.textContent = f.name;
-      setToast('Fichier prêt : ' + f.name, 'ok');
-      setDropState('ok');
-      maybeAutoSubmit();
-    });
-
-    // Normalize version on submit (add leading v)
-    form.addEventListener('submit', (e) => {
-      const v = versionInput.value.trim();
-      if (!v) {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
+      drop.addEventListener(ev, e => {
         e.preventDefault();
-        setToast('Merci de renseigner la version.', 'err');
-        versionInput.focus();
-        setDropState('error');
-        return;
-      }
-      if (!chosenFile && !file.files[0]) {
+        e.stopPropagation();
+      });
+    });
+
+    drop.addEventListener('dragenter', () => drop.classList.add('drag'));
+    drop.addEventListener('dragleave', () => resetState());
+
+    drop.addEventListener('drop', e => {
+      resetState();
+      const file = e.dataTransfer.files[0];
+      if (!file) return showError("Aucun fichier détecté.");
+      if (!file.name.endsWith('.zip')) return showError("Format invalide. ZIP requis.");
+      chosenFile = file;
+      showOk(file.name);
+      fileInput.files = e.dataTransfer.files;
+    });
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      if (!file.name.endsWith('.zip')) return showError("Format invalide. ZIP requis.");
+      chosenFile = file;
+      showOk(file.name);
+    });
+
+    form.addEventListener('submit', e => {
+      if (!chosenFile && !fileInput.files.length) {
         e.preventDefault();
-        setToast('Merci de sélectionner un ZIP.', 'err');
-        setDropState('error');
-        return;
+        return showError("Merci de choisir un fichier ZIP.");
       }
-      if (!/^v/i.test(v)) versionInput.value = 'v' + v;
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Envoi…';
+      if (!versionInput.value.trim()) {
+        e.preventDefault();
+        return showError("Entre une version avant d’envoyer.");
+      }
+      if (!/^v/i.test(versionInput.value.trim())) {
+        versionInput.value = "v" + versionInput.value.trim();
+      }
     });
   </script>
 </body>
