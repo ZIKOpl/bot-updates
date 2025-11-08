@@ -1,76 +1,120 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bot Updates</title>
-  <link rel="stylesheet" href="/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bot Updates — Public</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+  <style>
+    :root{
+      --bg:#0b0f16; --card:#121826; --muted:#9aa4b2; --text:#e5e7eb; --brand:#7c5cff; --brand2:#14b8a6; --danger:#ef4444;
+      --ok:#22c55e; --warn:#f59e0b; --border: #1f2937;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(80% 80% at 50% 0%, rgba(124,92,255,.15), transparent 60%) , var(--bg);
+      color:var(--text);
+    }
+    .wrap{max-width:1050px;margin:40px auto;padding:0 20px}
+    .nav{
+      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:24px
+    }
+    .tag{background:rgba(124,92,255,.15);color:#c7b8ff;border:1px solid rgba(124,92,255,.35); padding:6px 10px;border-radius:999px;font-weight:600;font-size:12px; letter-spacing:.4px}
+    .btn{appearance:none;border:none;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600;color:#fff;background:linear-gradient(135deg,var(--brand),#4f46e5);box-shadow:0 10px 30px rgba(79,70,229,.25);transition:transform .15s ease, filter .2s}
+    .btn:hover{transform:translateY(-1px)}
+    .btn.secondary{background:#1f2937}
+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01)); border:1px solid var(--border); border-radius:16px; padding:18px; box-shadow: 0 6px 18px rgba(0,0,0,.25)}
+    h1{font-size:28px;margin:12px 0 6px}
+    p.muted{color:var(--muted);margin:0}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+    .pill{display:flex;flex-direction:column;gap:6px;background:#0f1522;border:1px solid #1f2937;border-radius:12px;padding:12px 14px}
+    .pill b{font-size:22px}
+    .pill small{color:var(--muted)}
+    .flex{display:flex;gap:12px;align-items:center;justify-content:space-between}
+    .row{display:flex;gap:10px;align-items:center}
+    .badge{padding:6px 10px;border-radius:999px;font-weight:700;font-size:12px}
+    .bd-ok{background:rgba(34,197,94,.15);color:#b4f7c7;border:1px solid rgba(34,197,94,.35)}
+    .bd-warn{background:rgba(245,158,11,.15);color:#ffe1a6;border:1px solid rgba(245,158,11,.35)}
+    .bd-danger{background:rgba(239,68,68,.15);color:#ffb7b7;border:1px solid rgba(239,68,68,.35)}
+    .footer{margin-top:24px;color:var(--muted);font-size:12px;text-align:center;opacity:.8}
+    @media (max-width:950px){ .grid{grid-template-columns:1fr; } }
+  </style>
 </head>
 <body>
-  <nav class="nav">
-    <div class="brand">
-      <div class="logo"></div>
-      <h1>Bot Updates</h1>
+  <div class="wrap">
+    <div class="nav">
+      <div class="row">
+        <span class="tag">Bot Updates</span>
+        <span class="tag">Public</span>
+      </div>
+      <div class="row">
+        <% if (user) { %>
+          <a class="btn secondary" href="/dashboard">Dashboard</a>
+          <a class="btn" href="/logout">Déconnexion</a>
+        <% } else { %>
+          <a class="btn" href="/login">Se connecter avec Discord</a>
+        <% } %>
+      </div>
     </div>
-    <div class="actions">
-      <a href="/dashboard" class="btn primary">Dashboard</a>
-    </div>
-  </nav>
-
-  <main class="container">
-    <section class="hero">
-      <h1>📦 Système de mise à jour automatique</h1>
-      <p>Gérez et suivez les versions de vos bots facilement.</p>
-      <span class="version-pill">Version actuelle : <%= version %></span>
-    </section>
 
     <div class="grid">
       <div class="card">
-        <h2>📊 Statistiques des bots</h2>
-        <canvas id="versionChart"></canvas>
+        <h1>Dernière version : <span class="badge bd-ok"><%= version %></span></h1>
+        <p class="muted">Mise en ligne : <%= date %></p>
+
+        <div class="stats">
+          <div class="pill"><b><%= downloads %></b><small>Téléchargements API</small></div>
+          <div class="pill"><b><%= upToDate %></b><small>Bots à jour</small></div>
+          <div class="pill"><b><%= outdated %></b><small>Bots obsolètes</small></div>
+        </div>
+
+        <canvas id="pie" style="margin-top:18px;height:260px"></canvas>
       </div>
 
       <div class="card">
-        <h2>🚀 Dernière mise à jour</h2>
-        <p><strong>Version :</strong> <%= version %></p>
-        <p><strong>Date :</strong> <%= date %></p>
-        <p><strong>Nombre de téléchargements :</strong> <%= downloads || 0 %></p>
+        <h2>Comment ça marche ?</h2>
+        <p class="muted" style="line-height:1.6">
+          Les bots font une requête à <code>/api/version</code> pour récupérer la dernière version et le lien du ZIP.  
+          Tu déposes simplement le ZIP dans le dashboard (glisser-déposer), il devient la nouvelle version.
+        </p>
+        <div style="margin-top:10px">
+          <% if (!user) { %>
+            <a class="btn" href="/login">Accéder au dashboard</a>
+          <% } else { %>
+            <a class="btn" href="/dashboard">Ouvrir le dashboard</a>
+          <% } %>
+        </div>
       </div>
     </div>
-  </main>
 
-  <footer class="footer">
-    <p>© 2025 Bot Updates — Propulsé par Render & Node.js</p>
-  </footer>
+    <div class="footer">© <%= new Date().getFullYear() %> Bot Updates · Interface publique</div>
+  </div>
 
-  <script defer>
-    document.addEventListener("DOMContentLoaded", () => {
-      // ✅ Correction : parser les JSON générés par EJS
-      const upToDate = JSON.parse('<%- JSON.stringify(upToDate || 0) %>');
-      const outdated = JSON.parse('<%- JSON.stringify(outdated || 0) %>');
+  <script>
+    const upToDate = Number(<%= JSON.stringify(upToDate) %>);
+    const outdated = Number(<%= JSON.stringify(outdated) %>);
 
-      const ctx = document.getElementById("versionChart");
-      if (!ctx) return;
-
-      new Chart(ctx, {
-        type: "doughnut",
-        data: {
-          labels: ["À jour", "Anciennes versions"],
-          datasets: [{
-            data: [upToDate, outdated],
-            backgroundColor: ["#4caf50", "#ff5252"],
-            borderWidth: 1.5
-          }]
-        },
-        options: {
-          plugins: {
-            legend: {
-              labels: { color: "#ddd", font: { size: 14 } }
-            }
-          }
-        }
-      });
+    const ctx = document.getElementById('pie').getContext('2d');
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['À jour', 'Obsolètes'],
+        datasets: [{
+          data: [upToDate, outdated],
+          borderWidth: 0,
+          backgroundColor: ['#22c55e', '#f59e0b']
+        }]
+      },
+      options: {
+        plugins: { legend: { labels: { color: '#e5e7eb' } } },
+        cutout: '60%'
+      }
     });
   </script>
 </body>
