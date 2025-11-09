@@ -5,7 +5,7 @@ const DiscordStrategy = require("passport-discord").Strategy;
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-const fetch = require("node-fetch"); // pour le webhook Discord
+const fetch = require("node-fetch");
 
 const app = express();
 
@@ -14,7 +14,7 @@ const OWNER_ID = process.env.OWNER_ID || "1398750844459024454";
 const SESSION_SECRET = process.env.SESSION_SECRET || "super_secret_session";
 const PORT = process.env.PORT || 3000;
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
-const ROLE_ID = process.env.DISCORD_ROLE_ID; // rôle à ping
+const ROLE_ID = process.env.DISCORD_ROLE_ID;
 
 const DATA_DIR = path.join(__dirname, "data");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
@@ -33,18 +33,7 @@ function writeJSON(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
 }
 
-/**
- * releases shape:
- * {
- *   latest: "v1.0",
- *   items: [ { version, filename, createdAt, notes } ]
- * }
- */
 let releases = readJSON(RELEASES_FILE, { latest: "v1.0", items: [] });
-/**
- * stats shape:
- * { downloads: 0, bots: { [botId]: { botVersion, lastCheck } } }
- */
 let stats = readJSON(STATS_FILE, { downloads: 0, bots: {} });
 
 /* ===================== EXPRESS / EJS ===================== */
@@ -249,6 +238,62 @@ app.post("/upload", requireOwner, (req, res) => {
   });
 });
 
+/* ===================== DELETE RELEASE ===================== */
+app.post("/delete/:version", requireOwner, (req, res) => {
+  const version = req.params.version;
+  const release = releases.items.find((r) => r.version === version);
+  if (!release) return res.status(404).send("Version introuvable.");
+
+  const filePath = path.join(UPLOAD_DIR, release.filename);
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+  releases.items = releases.items.filter((r) => r.version !== version);
+  if (releases.latest === version && releases.items.length) {
+    releases.latest = releases.items[0].version;
+  }
+  writeJSON(RELEASES_FILE, releases);
+  console.log(`🗑️ Release ${version} supprimée`);
+  res.redirect("/dashboard");
+});
+
+/* ===================== REVERT RELEASE ===================== */
+app.post("/releases/:version/revert", requireOwner, async (req, res) => {
+  const version = req.params.version;
+  const release = releases.items.find((r) => r.version === version);
+  if (!release) return res.json({ ok: false, error: "Version introuvable." });
+
+  releases.latest = version;
+  writeJSON(RELEASES_FILE, releases);
+
+  // Webhook revert
+  if (WEBHOOK_URL) {
+    const webhookBody = {
+      content: ROLE_ID ? `<@&${ROLE_ID}>` : null,
+      embeds: [
+        {
+          title: `🔁 Reversion effectuée — ${version}`,
+          description: "L’ancienne version est redevenue la version active.",
+          color: 0xffb347,
+          footer: { text: "Home Update Panel" },
+          timestamp: new Date().toISOString(),
+        },
+      ],
+    };
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(webhookBody),
+      });
+      console.log("♻️ Reversion annoncée sur Discord");
+    } catch (e) {
+      console.error("❌ Erreur Webhook revert :", e);
+    }
+  }
+
+  res.json({ ok: true });
+});
+
 /* ===================== API POUR LES BOTS ===================== */
 app.get("/api/version", (req, res) => {
   const botId = (req.query.bot_id || "unknown").toString();
@@ -272,4 +317,6 @@ app.get("/api/version", (req, res) => {
   });
 });
 
-app.listen(PORT, () => console.log(`✅ Panel en ligne sur http://localhost:${PORT}`));
+app.listen(PORT, () =>
+  console.log(`✅ Panel en ligne sur http://localhost:${PORT}`)
+);
