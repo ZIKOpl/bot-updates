@@ -13,7 +13,10 @@
       <img src="/logo.png" alt="HOME UPDATE" class="nav-logo" />
       <span class="brand-text">HOME UPDATE</span>
     </div>
-    <div class="nav-right">
+
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+
+    <div class="nav-right" id="navMenu">
       <a class="btn" href="/">Accueil</a>
       <a class="btn danger" href="/logout">Déconnexion</a>
     </div>
@@ -26,8 +29,6 @@
     </header>
 
     <section class="dashboard-flex">
-
-      <!-- Upload -->
       <div class="card upload-card card-tilt">
         <h2>📥 Nouvelle release</h2>
         <form id="uploadForm" class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
@@ -43,7 +44,6 @@
         </form>
       </div>
 
-      <!-- Liste versions -->
       <div class="card timeline-card card-tilt">
         <h2>🕒 Versions précédentes</h2>
         <% if (releases.length === 0) { %>
@@ -88,7 +88,16 @@
   </footer>
 
   <script>
-    // Drag & Drop + click
+    // Menu mobile
+    const toggle = document.getElementById("menuToggle");
+    const menu = document.getElementById("navMenu");
+    toggle.addEventListener("click", () => menu.classList.toggle("show"));
+    window.addEventListener("click", e => {
+      if (!toggle.contains(e.target) && !menu.contains(e.target))
+        menu.classList.remove("show");
+    });
+
+    // Drag & Drop
     const drop = document.getElementById('dropZone');
     const input = document.getElementById('fileInput');
     const text = document.getElementById('uploadText');

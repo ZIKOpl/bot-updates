@@ -12,7 +12,10 @@
       <img src="/logo.png" alt="HOME UPDATE" class="nav-logo" />
       <span class="brand-text">HOME UPDATE</span>
     </div>
-    <div class="actions">
+
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+
+    <div class="nav-right" id="navMenu">
       <% if (user) { %>
         <a class="btn" href="/dashboard">Dashboard</a>
         <a class="btn danger" href="/logout">Déconnexion</a>
@@ -49,7 +52,7 @@
 
     <section class="home-tiles">
       <div class="tile card-tilt">
-        <h2>📘 COMMENT METTRE À JOUR TON BOT</h2>
+        <h2>COMMENT METTRE À JOUR TON BOT</h2>
         <ul class="steps">
           <li>1. SUR DISCORD, ENTRE <strong>+UPDATE</strong>.</li>
           <li>2. ATTENDS QUE LE BOT INSTALLE LES FICHIERS.</li>
@@ -58,7 +61,7 @@
       </div>
 
       <div class="tile card-tilt">
-        <h2>📊 STATISTIQUES</h2>
+        <h2>STATISTIQUES</h2>
         <div class="stat-grid">
           <div class="stat"><div class="stat-kpi"><%= totalBots %></div><div class="stat-label">Total bots</div></div>
           <div class="stat"><div class="stat-kpi"><%= upToDate %></div><div class="stat-label">À jour</div></div>
@@ -73,5 +76,15 @@
     <a href="/terms">Termes</a> ·
     <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
   </footer>
+
+  <script>
+    const toggle = document.getElementById("menuToggle");
+    const menu = document.getElementById("navMenu");
+    toggle.addEventListener("click", () => menu.classList.toggle("show"));
+    window.addEventListener("click", e => {
+      if (!toggle.contains(e.target) && !menu.contains(e.target))
+        menu.classList.remove("show");
+    });
+  </script>
 </body>
 </html>
