@@ -15,12 +15,7 @@
     </div>
     <div class="nav-right">
       <a class="btn" href="/">Accueil</a>
-      <a class="btn" href="/support">Discord</a>
       <a class="btn danger" href="/logout">Déconnexion</a>
-      <div class="logo-right">
-        <img src="/logo.png" alt="" />
-        <span>HOME UPDATE</span>
-      </div>
     </div>
   </nav>
 
@@ -61,17 +56,21 @@
                   <div class="release-dot"><%= r.version %></div>
                   <div class="release-meta">
                     <div class="release-title"><%= r.version %></div>
-                    <div class="muted"><%= new Date(r.createdAt).toLocaleString("fr-FR", { dateStyle:"medium", timeStyle:"short" }) %></div>
+                    <div class="muted">
+                      <%= new Date(r.createdAt).toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}) %>
+                    </div>
                     <% if (r.notes) { %>
                       <div class="muted" style="margin-top:6px"><%= r.notes %></div>
                     <% } %>
                   </div>
                 </div>
                 <div class="release-actions">
-                  <button class="icon-btn more-btn" aria-label="more" data-version="<%= r.version %>">⋮</button>
+                  <button class="icon-btn more-btn" aria-label="menu" data-version="<%= r.version %>">⋮</button>
                   <div class="menu hidden" id="menu-<%= r.version %>">
                     <button class="menu-item revert" data-version="<%= r.version %>">🔁 Revenir sur cette version</button>
-                    <button class="menu-item danger delete" data-version="<%= r.version %>">🗑️ Supprimer</button>
+                    <form action="/delete/<%= r.version %>" method="post" style="margin:0;">
+                      <button type="submit" class="menu-item danger">🗑️ Supprimer</button>
+                    </form>
                   </div>
                 </div>
               </li>
@@ -85,8 +84,7 @@
   <footer class="footer">
     © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
     <a href="/terms">Termes</a> ·
-    <a href="/support">Support</a> ·
-    <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
+    <a href="/support">Support</a>
   </footer>
 
   <script>
@@ -97,11 +95,10 @@
     const form = document.getElementById('uploadForm');
 
     drop.addEventListener('click', () => input.click());
-    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('hover'); });
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('hover'); });
     drop.addEventListener('dragleave', () => drop.classList.remove('hover'));
-    drop.addEventListener('drop', (e) => {
-      e.preventDefault();
-      drop.classList.remove('hover');
+    drop.addEventListener('drop', e => {
+      e.preventDefault(); drop.classList.remove('hover');
       if (e.dataTransfer.files.length) {
         input.files = e.dataTransfer.files;
         text.textContent = 'Fichier sélectionné : ' + e.dataTransfer.files[0].name;
@@ -110,13 +107,11 @@
     input.addEventListener('change', () => {
       if (input.files.length) text.textContent = 'Fichier sélectionné : ' + input.files[0].name;
     });
-    form.addEventListener('submit', () => {
-      text.textContent = 'Upload en cours…';
-    });
+    form.addEventListener('submit', () => { text.textContent = 'Upload en cours…'; });
 
     // Menus ⋮
     document.querySelectorAll('.more-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', e => {
         e.stopPropagation();
         const v = btn.dataset.version;
         const menu = document.getElementById('menu-' + v);
@@ -126,31 +121,6 @@
     });
     window.addEventListener('click', () => {
       document.querySelectorAll('.menu').forEach(m => m.classList.add('hidden'));
-    });
-
-    // Actions menu
-    document.querySelectorAll('.menu .revert').forEach(b => {
-      b.addEventListener('click', async () => {
-        const v = b.dataset.version;
-        const ok = confirm('Basculer la dernière version sur ' + v + ' ?');
-        if (!ok) return;
-        const res = await fetch('/releases/' + encodeURIComponent(v) + '/revert', { method: 'POST' });
-        const js = await res.json();
-        if (js.ok) location.reload();
-        else alert(js.error || 'Erreur.');
-      });
-    });
-
-    document.querySelectorAll('.menu .delete').forEach(b => {
-      b.addEventListener('click', async () => {
-        const v = b.dataset.version;
-        const ok = confirm('Supprimer la version ' + v + ' ? (le fichier sera supprimé)');
-        if (!ok) return;
-        const res = await fetch('/releases/' + encodeURIComponent(v) + '/delete', { method: 'POST' });
-        const jsa = await res.json();
-        if (js.ok) location.reload();
-        else alert(js.error || 'Erreur.');
-      });
     });
   </script>
 </body>
