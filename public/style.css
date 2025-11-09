@@ -1,4 +1,4 @@
-/* =============== AURA 2025 (révisé) =============== */
+/* =============== AURA 2025 (pro+) =============== */
 :root{
   --bg:#050811;
   --bg-card:rgba(20,25,38,.85);
@@ -22,6 +22,14 @@ body{
   position:relative;
   overflow-x:hidden;
 }
+
+/* Scrollbar custom */
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-track{background:#0a0f19}
+*::-webkit-scrollbar-thumb{background:#1b2640;border-radius:8px}
+*::-webkit-scrollbar-thumb:hover{background:#263559;}
+
+/* Lights */
 body::before,body::after{
   content:"";
   position:fixed; width:520px; height:520px; border-radius:50%;
@@ -39,15 +47,10 @@ body::after{background:#00ffff; bottom:-150px; right:-150px; animation-delay:6s}
   border-bottom:1px solid var(--border); backdrop-filter:blur(12px);
   box-shadow:0 0 20px rgba(108,140,255,.15);
 }
-.brand{display:flex;align-items:center;gap:.6rem;font-weight:600}
-.nav-right{display:flex;align-items:center;gap:14px}
-.logo-right{display:flex;align-items:center;gap:.6rem;padding:.3rem .6rem;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--border)}
-.logo-right img{width:22px;height:22px;border-radius:6px;object-fit:cover}
-.logo-right span{font-weight:700; letter-spacing:.3px}
-
-/* === Logo HOME UPDATE === */
-.nav-logo { width: 28px; height: 28px; border-radius: 8px; object-fit: cover; box-shadow: 0 0 12px rgba(108, 140, 255, 0.6); }
-.brand-text { font-weight: 700; font-size: 1.1rem; color: var(--text); text-shadow: 0 0 10px rgba(108, 140, 255, 0.4); letter-spacing: .5px; }
+.brand{display:flex;align-items:center;gap:.6rem;font-weight:700}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-logo{width:28px;height:28px;border-radius:8px;object-fit:cover;box-shadow:0 0 12px rgba(108,140,255,.6)}
+.brand-text{font-weight:800;font-size:1.1rem;letter-spacing:.3px}
 
 /* =============== BUTTONS =============== */
 .btn{
@@ -66,13 +69,16 @@ body::after{background:#00ffff; bottom:-150px; right:-150px; animation-delay:6s}
 .container{max-width:1200px; margin:0 auto; padding:0 24px; position:relative; z-index:1}
 .hero{text-align:center; margin:64px 0 36px}
 .hero h1{
-  margin:0 0 10px; font-size:42px; font-weight:800;
+  margin:0 0 10px; font-size:40px; font-weight:900;
   background:linear-gradient(90deg,var(--accent),#7aa8ff);
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
   text-shadow:0 0 22px rgba(108,140,255,.3);
 }
-.hero p{color:var(--muted)}
-.version-pill{display:inline-block; margin-top:14px; padding:8px 14px; border-radius:999px; background:linear-gradient(90deg,var(--accent),#4c6fff); box-shadow:0 0 16px rgba(108,140,255,.4)}
+.hero p{color:var(--muted); font-size:1.05rem}
+.version-pill{
+  display:inline-block; margin-top:14px; padding:8px 14px; border-radius:999px;
+  background:linear-gradient(90deg,var(--accent),#4c6fff); box-shadow:0 0 16px rgba(108,140,255,.4)
+}
 
 /* =============== STRIP release =============== */
 .release-strip{
@@ -80,16 +86,10 @@ body::after{background:#00ffff; bottom:-150px; right:-150px; animation-delay:6s}
   background:rgba(255,255,255,.04); border:1px solid var(--border);
   backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:space-between; gap:16px;
 }
-.card-glow{ position:relative; overflow:hidden }
-.card-glow::before{
-  content:""; position:absolute; inset:-2px; pointer-events:none;
-  background:conic-gradient(from 180deg at 50% 50%, rgba(108,140,255,.25), transparent, rgba(108,140,255,.25));
-  filter:blur(24px); opacity:.35; transform:translateY(-20%);
-}
 .strip-left{display:flex; align-items:center; gap:16px; flex:1}
 .version-badge{
   min-width:72px; height:72px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center; font-weight:800;
+  display:flex; align-items:center; justify-content:center; font-weight:900;
   background:linear-gradient(135deg,var(--accent),#4c6fff); box-shadow:0 0 22px rgba(108,140,255,.45)
 }
 .strip-info h3{margin:0 0 6px}
@@ -97,27 +97,19 @@ body::after{background:#00ffff; bottom:-150px; right:-150px; animation-delay:6s}
 .strip-right{display:flex; gap:16px}
 .metric{min-width:180px; background:rgba(255,255,255,.04); border:1px solid var(--border); padding:12px 14px; border-radius:14px}
 .metric-title{color:var(--muted); font-size:12px}
-.metric-value{font-weight:700; margin-top:4px}
+.metric-value{font-weight:800; margin-top:4px}
 
 /* =============== home tiles =============== */
-.home-tiles{display:flex; flex-wrap:wrap; gap:26px; justify-content:center; padding-bottom:64px}
+.home-tiles{display:flex; flex-wrap:wrap; gap:22px; justify-content:center; padding-bottom:64px}
 .tile{
-  flex:1 1 420px; max-width:520px; padding:24px; border-radius:20px;
+  flex:1 1 340px; max-width:420px; padding:22px; border-radius:18px;
   background:rgba(255,255,255,.04); border:1px solid var(--border);
   backdrop-filter:blur(10px); box-shadow:0 0 20px rgba(108,140,255,.12);
-  position:relative; overflow:hidden;
+  transition:transform .25s ease, box-shadow .25s ease;
 }
-.card-tilt{transition:transform .25s ease, box-shadow .25s ease}
-.card-tilt:hover{transform:translateY(-6px); box-shadow:0 10px 35px rgba(108,140,255,.25)}
+.tile:hover{transform:translateY(-6px); box-shadow:0 10px 30px rgba(108,140,255,.25)}
 .tile h2{margin-top:0; color:var(--accent-glow); text-shadow:0 0 10px rgba(108,140,255,.3)}
 .muted{color:var(--muted)}
-.steps{margin:10px 0 16px 18px}
-.steps li{margin:6px 0}
-.cta-row{display:flex; gap:12px; flex-wrap:wrap}
-.stat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:10px}
-.stat{padding:14px; border:1px solid var(--border); border-radius:14px; background:rgba(255,255,255,.04)}
-.stat-kpi{font-size:24px; font-weight:800}
-.stat-label{color:var(--muted)}
 
 /* =============== cards / dashboard =============== */
 .dashboard-flex{display:flex; gap:22px; flex-wrap:wrap; justify-content:center; margin-bottom:60px}
@@ -125,15 +117,11 @@ body::after{background:#00ffff; bottom:-150px; right:-150px; animation-delay:6s}
   flex:1; min-width:360px; padding:22px; border-radius:18px;
   background:rgba(255,255,255,.04); border:1px solid var(--border); backdrop-filter:blur(10px);
   box-shadow:0 0 20px rgba(108,140,255,.12);
-  position:relative; overflow:hidden;
+  transition:transform .25s ease, box-shadow .25s ease;
 }
-.main-card .current-version{display:flex; align-items:center; gap:16px}
-.current-badge{
-  min-width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-  font-weight:800; background:linear-gradient(135deg,var(--accent),#4c6fff); box-shadow:0 0 18px rgba(108,140,255,.45)
-}
+.card:hover{transform:translateY(-6px); box-shadow:0 10px 30px rgba(108,140,255,.25)}
 .upload-card{max-width:620px}
-.timeline-card{max-width:560px}
+.timeline-card{max-width:520px}
 .card h2{margin-top:0; color:var(--accent-glow); text-shadow:0 0 10px rgba(108,140,255,.3)}
 
 /* =============== inputs / dropzone =============== */
@@ -150,40 +138,17 @@ body::after{background:#00ffff; bottom:-150px; right:-150px; animation-delay:6s}
 }
 .drop-zone.hover{background:rgba(108,140,255,.12); color:#e5ecff; border-color:var(--accent-glow); box-shadow:0 0 18px rgba(108,140,255,.35)}
 
-/* =============== release list (dashboard) =============== */
-.release-list2{list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:10px}
-.release-row{display:flex; align-items:flex-start; justify-content:space-between; gap:10px; padding:12px; border:1px solid var(--border); border-radius:14px; background:rgba(255,255,255,.03)}
-.release-left{display:flex; gap:12px; align-items:flex-start}
-.release-dot{
-  min-width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:800;
-  background:linear-gradient(135deg,var(--accent),#4c6fff); box-shadow:0 0 14px rgba(108,140,255,.35)
-}
-.release-title{font-weight:700}
-.release-actions{position:relative}
-.icon-btn{
-  background:rgba(255,255,255,.05); border:1px solid var(--border); color:var(--text);
-  border-radius:10px; padding:6px 10px; cursor:pointer;
-}
-.menu{
-  position:absolute; right:0; margin-top:8px; min-width:220px; border:1px solid var(--border);
-  background:rgba(10,15,25,.95); border-radius:12px; backdrop-filter:blur(12px); padding:6px; box-shadow:0 10px 30px rgba(0,0,0,.45);
-}
-.menu.hidden{display:none}
-.menu-item{
-  width:100%; text-align:left; padding:10px 12px; background:transparent; color:var(--text);
-  border:none; border-radius:10px; cursor:pointer; transition:background .2s ease;
-}
-.menu-item:hover{background:rgba(255,255,255,.06)}
-.menu-item.danger{color:#ffd0d0}
+/* =============== timeline =============== */
+.timeline{list-style:none; padding-left:14px; border-left:2px solid var(--accent); margin:14px 0 0}
+.timeline li{position:relative; margin-bottom:14px}
+.timeline .dot{position:absolute; left:-12px; top:4px; width:10px; height:10px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent)}
+.version-label{font-weight:800; color:var(--accent-glow)}
 
 /* =============== footer / forbidden =============== */
 .footer{
   margin-top:auto; text-align:center; padding:22px 0;
   border-top:1px solid var(--border); background:rgba(10,15,25,.65); color:var(--muted); backdrop-filter:blur(10px)
 }
-.footer a{color:#cfe0ff; text-decoration:none; margin:0 6px}
-.footer a:hover{text-decoration:underline}
-
 .forbidden{height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center}
 .forbidden .icon{font-size:42px}
 

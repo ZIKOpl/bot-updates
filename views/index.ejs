@@ -14,30 +14,24 @@
       <span class="brand-text">HOME UPDATE</span>
     </div>
     <div class="nav-right">
-      <a class="btn" href="/support">Discord</a>
       <% if (user) { %>
         <a class="btn" href="/dashboard">Dashboard</a>
         <a class="btn danger" href="/logout">Déconnexion</a>
       <% } else { %>
         <a class="btn primary" href="/login">Connexion Discord</a>
       <% } %>
-      <div class="logo-right">
-        <img src="/logo.png" alt="" />
-        <span>HOME UPDATE</span>
-      </div>
     </div>
   </nav>
 
   <main class="container">
-    <!-- HERO -->
     <header class="hero">
       <h1>Mises à jour de ton bot, sans prise de tête</h1>
-      <p>Glisse-dépose la nouvelle version sur le dashboard. Les bots se mettent à jour avec <code>+update</code> et redémarrent automatiquement.</p>
+      <p>Dépose ta release, appelle <strong>+update</strong> sur le bot, il télécharge, installe et redémarre tout seul.</p>
       <span class="version-pill">Dernière version : <%= version %></span>
     </header>
 
-    <!-- Dernière release (strip) -->
-    <section class="release-strip card-glow">
+    <!-- Bandeau dernière release -->
+    <section class="release-strip">
       <div class="strip-left">
         <div class="version-badge"><%= version %></div>
         <div class="strip-info">
@@ -61,52 +55,25 @@
       </div>
     </section>
 
-    <!-- Tutoriel -->
+    <!-- Tuiles -->
     <section class="home-tiles">
-      <div class="tile card-tilt">
-        <h2>Comment mettre à jour ton bot</h2>
-        <ol class="steps">
-          <li>Sur Discord, tape <code>+update</code> dans un salon où ton bot a accès.</li>
-          <li>Le bot télécharge la dernière version et installe les fichiers.</li>
-          <li>Le bot redémarre automatiquement. C’est tout ✅</li>
-        </ol>
-        <div class="cta-row">
-          <a class="btn primary" href="/support">💬 Rejoindre le Discord</a>
-          <a class="btn" href="/terms">📄 Termes & Conditions</a>
-        </div>
+      <div class="tile">
+        <h2>📘 Comment mettre à jour ton bot</h2>
+        <p>1) Sur Discord, tape <code>+update</code>.</p>
+        <p>2) Le bot télécharge la dernière release et installe les fichiers.</p>
+        <p>3) Le bot redémarre automatiquement.</p>
+        <p class="muted" style="margin-top:8px">En cas de souci, vérifie le token ou re-déploie la release.</p>
       </div>
 
-      <div class="tile card-tilt">
-        <h2>Statistiques globales</h2>
-        <p class="muted">Aperçu rapide de l’écosystème.</p>
-        <div class="stat-grid">
-          <div class="stat">
-            <div class="stat-kpi"><%= totalBots %></div>
-            <div class="stat-label">Bots vus</div>
-          </div>
-          <div class="stat">
-            <div class="stat-kpi"><%= upToDate %></div>
-            <div class="stat-label">À jour</div>
-          </div>
-          <div class="stat">
-            <div class="stat-kpi"><%= outdated %></div>
-            <div class="stat-label">Obsolètes</div>
-          </div>
-        </div>
-        <% if (!user) { %>
-          <div class="cta-row" style="margin-top:12px">
-            <a class="btn primary" href="/login">Se connecter au dashboard</a>
-          </div>
-        <% } %>
+      <div class="tile">
+        <h2>📈 Statistiques</h2>
+        <p>Total de bots : <strong><%= totalBots %></strong></p>
+        <p>À jour : <strong><%= upToDate %></strong></p>
+        <p>Obsolètes : <strong><%= outdated %></strong></p>
       </div>
     </section>
   </main>
 
-  <footer class="footer">
-    © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
-    <a href="/terms">Termes</a> ·
-    <a href="/support">Support</a> ·
-    <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
-  </footer>
+  <footer class="footer">© <%= new Date().getFullYear() %> — Home Update Panel</footer>
 </body>
 </html>

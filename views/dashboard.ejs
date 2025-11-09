@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Dashboard • HOME UPDATE</title>
+  <title>HOME UPDATE • Dashboard</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/style.css" />
 </head>
@@ -15,42 +15,22 @@
     </div>
     <div class="nav-right">
       <a class="btn" href="/">Accueil</a>
-      <a class="btn" href="/support">Discord</a>
       <a class="btn danger" href="/logout">Déconnexion</a>
-      <div class="logo-right">
-        <img src="/logo.png" alt="" />
-        <span>HOME UPDATE</span>
-      </div>
     </div>
   </nav>
 
   <main class="container">
     <header class="hero">
-      <h1>Panneau de gestion</h1>
-      <p>Glisse la nouvelle version, ajoute des notes et publie.</p>
+      <h1>Dashboard des releases</h1>
+      <p>Dépose une nouvelle version, ajoute des notes, et notifie automatiquement via Discord.</p>
     </header>
 
     <section class="dashboard-flex">
-      <!-- Version courante -->
-      <div class="card main-card card-glow">
-        <h2>🚀 Version actuelle</h2>
-        <div class="current-version">
-          <div class="current-badge"><%= latest %></div>
-          <div>
-            <div class="muted">Dernière publication</div>
-            <div style="font-weight:700;margin-top:4px">
-              <% const last = releases.find(r => r.version === latest); %>
-              <%= last ? new Date(last.createdAt).toLocaleString("fr-FR", {dateStyle:"medium", timeStyle:"short"}) : "–" %>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Upload -->
-      <div class="card upload-card card-tilt">
+      <!-- Upload card -->
+      <div class="card upload-card">
         <h2>📥 Nouvelle release</h2>
         <form id="uploadForm" class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
-          <input class="input" type="text" name="version" placeholder="Numéro de version (ex : 2.6)" required />
+          <input class="input" type="text" name="version" placeholder="Numéro de version (ex : 2.6 ou v2.6)" required />
           <textarea class="input textarea" name="notes" rows="3" placeholder="Notes de version (changements, corrections…)"></textarea>
 
           <div id="dropZone" class="drop-zone">
@@ -62,31 +42,20 @@
         </form>
       </div>
 
-      <!-- Liste versions -->
-      <div class="card timeline-card card-tilt">
+      <!-- Timeline -->
+      <div class="card timeline-card">
         <h2>🕒 Versions précédentes</h2>
         <% if (releases.length === 0) { %>
           <p class="muted">Aucune release disponible</p>
         <% } else { %>
-          <ul class="release-list2">
+          <ul class="timeline">
             <% releases.forEach(r => { %>
-              <li class="release-row" data-version="<%= r.version %>">
-                <div class="release-left">
-                  <div class="release-dot"><%= r.version %></div>
-                  <div class="release-meta">
-                    <div class="release-title"><%= r.version %></div>
-                    <div class="muted"><%= new Date(r.createdAt).toLocaleString("fr-FR", { dateStyle:"medium", timeStyle:"short" }) %></div>
-                    <% if (r.notes) { %>
-                      <div class="muted" style="margin-top:6px"><%= r.notes %></div>
-                    <% } %>
-                  </div>
-                </div>
-                <div class="release-actions">
-                  <button class="icon-btn more-btn" aria-label="more" data-version="<%= r.version %>">⋮</button>
-                  <div class="menu hidden" id="menu-<%= r.version %>">
-                    <button class="menu-item revert" data-version="<%= r.version %>">🔁 Revenir sur cette version</button>
-                    <button class="menu-item danger delete" data-version="<%= r.version %>">🗑️ Supprimer</button>
-                  </div>
+              <li>
+                <span class="dot"></span>
+                <div class="timeline-content">
+                  <div class="version-label"><%= r.version %></div>
+                  <div class="muted"><%= new Date(r.createdAt).toLocaleString("fr-FR", { dateStyle:"medium", timeStyle:"short" }) %></div>
+                  <% if (r.notes) { %><p class="muted" style="margin-top:6px"><%= r.notes %></p><% } %>
                 </div>
               </li>
             <% }) %>
@@ -96,12 +65,7 @@
     </section>
   </main>
 
-  <footer class="footer">
-    © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
-    <a href="/terms">Termes</a> ·
-    <a href="/support">Support</a> ·
-    <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
-  </footer>
+  <footer class="footer">© <%= new Date().getFullYear() %> — Home Update Panel</footer>
 
   <script>
     // Drag & Drop + click
@@ -124,47 +88,9 @@
     input.addEventListener('change', () => {
       if (input.files.length) text.textContent = 'Fichier sélectionné : ' + input.files[0].name;
     });
+
     form.addEventListener('submit', () => {
       text.textContent = 'Upload en cours…';
-    });
-
-    // Menus ⋮
-    document.querySelectorAll('.more-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const v = btn.dataset.version;
-        const menu = document.getElementById('menu-' + v);
-        document.querySelectorAll('.menu').forEach(m => m.classList.add('hidden'));
-        if (menu) menu.classList.toggle('hidden');
-      });
-    });
-    window.addEventListener('click', () => {
-      document.querySelectorAll('.menu').forEach(m => m.classList.add('hidden'));
-    });
-
-    // Actions menu
-    document.querySelectorAll('.menu .revert').forEach(b => {
-      b.addEventListener('click', async () => {
-        const v = b.dataset.version;
-        const ok = confirm('Basculer la dernière version sur ' + v + ' ?');
-        if (!ok) return;
-        const res = await fetch('/releases/' + encodeURIComponent(v) + '/revert', { method: 'POST' });
-        const js = await res.json();
-        if (js.ok) location.reload();
-        else alert(js.error || 'Erreur.');
-      });
-    });
-
-    document.querySelectorAll('.menu .delete').forEach(b => {
-      b.addEventListener('click', async () => {
-        const v = b.dataset.version;
-        const ok = confirm('Supprimer la version ' + v + ' ? (le fichier sera supprimé)');
-        if (!ok) return;
-        const res = await fetch('/releases/' + encodeURIComponent(v) + '/delete', { method: 'POST' });
-        const js = await res.json();
-        if (js.ok) location.reload();
-        else alert(js.error || 'Erreur.');
-      });
     });
   </script>
 </body>
