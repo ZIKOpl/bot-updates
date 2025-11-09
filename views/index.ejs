@@ -2,18 +2,17 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>HOME UPDATE • Accueil</title>
+  <title>HOME UPDATE</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <!-- NAV -->
   <nav class="nav">
     <div class="brand">
       <img src="/logo.png" alt="HOME UPDATE" class="nav-logo" />
       <span class="brand-text">HOME UPDATE</span>
     </div>
-    <div class="nav-right">
+    <div class="actions">
       <% if (user) { %>
         <a class="btn" href="/dashboard">Dashboard</a>
         <a class="btn danger" href="/logout">Déconnexion</a>
@@ -24,56 +23,51 @@
   </nav>
 
   <main class="container">
-    <header class="hero">
-      <h1>Mises à jour de ton bot, sans prise de tête</h1>
-      <p>Dépose ta release, appelle <strong>+update</strong> sur le bot, il télécharge, installe et redémarre tout seul.</p>
+    <header class="hero" style="text-align:left;">
+      <h1>HOME UPDATE</h1>
+      <p>Système automatisé de mise à jour — simple, rapide, efficace.</p>
       <span class="version-pill">Dernière version : <%= version %></span>
     </header>
 
-    <!-- Bandeau dernière release -->
     <section class="release-strip">
       <div class="strip-left">
         <div class="version-badge"><%= version %></div>
         <div class="strip-info">
           <h3>Dernière release</h3>
           <% if (last) { %>
-            <p class="notes"><%= (last.notes && last.notes.length) ? last.notes : "Aucune note fournie pour cette version." %></p>
+            <p class="notes"><%= last.notes || "Aucune note fournie." %></p>
           <% } else { %>
             <p class="notes">Aucune release disponible.</p>
           <% } %>
         </div>
       </div>
       <div class="strip-right">
-        <div class="metric">
-          <div class="metric-title">Date</div>
-          <div class="metric-value"><%= date %></div>
-        </div>
-        <div class="metric">
-          <div class="metric-title">Téléchargements</div>
-          <div class="metric-value"><%= downloads || 0 %></div>
-        </div>
+        <div class="metric"><div class="metric-title">Date</div><div class="metric-value"><%= date %></div></div>
+        <div class="metric"><div class="metric-title">Téléchargements</div><div class="metric-value"><%= downloads %></div></div>
       </div>
     </section>
 
-    <!-- Tuiles -->
     <section class="home-tiles">
-      <div class="tile">
-        <h2>📘 Comment mettre à jour ton bot</h2>
-        <p>1) Sur Discord, tape <code>+update</code>.</p>
-        <p>2) Le bot télécharge la dernière release et installe les fichiers.</p>
-        <p>3) Le bot redémarre automatiquement.</p>
-        <p class="muted" style="margin-top:8px">En cas de souci, vérifie le token ou re-déploie la release.</p>
+      <div class="tile card-tilt">
+        <h2>📘 COMMENT METTRE À JOUR TON BOT</h2>
+        <ul class="steps">
+          <li>1. SUR DISCORD, ENTRE <strong>+UPDATE</strong>.</li>
+          <li>2. ATTENDS QUE LE BOT INSTALLE LES FICHIERS.</li>
+          <li>3. LE BOT SE RELANCE AUTOMATIQUEMENT.</li>
+        </ul>
       </div>
 
-      <div class="tile">
-        <h2>📈 Statistiques</h2>
-        <p>Total de bots : <strong><%= totalBots %></strong></p>
-        <p>À jour : <strong><%= upToDate %></strong></p>
-        <p>Obsolètes : <strong><%= outdated %></strong></p>
+      <div class="tile card-tilt">
+        <h2>📊 STATISTIQUES</h2>
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-kpi"><%= totalBots %></div><div class="stat-label">Total bots</div></div>
+          <div class="stat"><div class="stat-kpi"><%= upToDate %></div><div class="stat-label">À jour</div></div>
+          <div class="stat"><div class="stat-kpi"><%= outdated %></div><div class="stat-label">Obsolètes</div></div>
+        </div>
       </div>
     </section>
   </main>
 
-  <footer class="footer">© <%= new Date().getFullYear() %> — Home Update Panel</footer>
+  <footer class="footer">© <%= new Date().getFullYear() %> — HOME UPDATE PANEL</footer>
 </body>
 </html>
