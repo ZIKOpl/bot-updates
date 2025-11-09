@@ -10,6 +10,8 @@ const crypto = require("crypto");
 const mongoose = require("mongoose");
 
 // === MODELS ===
+const Release = require("./models/Release");
+const Stat = require("./models/Stat");
 const Bot = require("./models/Bot");
 const Report = require("./models/Report");
 
@@ -25,21 +27,15 @@ const SUPPORT_LINK = "https://discord.gg/b9tS35tkjN";
 
 const DATA_DIR = path.join(__dirname, "data");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
-const RELEASES_FILE = path.join(DATA_DIR, "releases.json");
-const STATS_FILE = path.join(DATA_DIR, "stats.json");
-
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 /* ===================== MONGO ===================== */
 mongoose
-  .connect(process.env.MONGO_URI || "mongodb://localhost/homeupdate", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI) // ex: mongodb+srv://user:pass@cluster/dbname
   .then(() => console.log("✅ Connecté à MongoDB"))
   .catch((err) => console.error("❌ Erreur MongoDB :", err));
 
-/* ===================== CHIFFREMENT ===================== */
+/* ===================== CHIFFREMENT (tokens bots) ===================== */
 const ENC_KEY = process.env.ENCRYPTION_KEY
   ? Buffer.from(process.env.ENCRYPTION_KEY, "base64")
   : crypto.randomBytes(32);
@@ -62,20 +58,6 @@ function decrypt(base64) {
   const dec = Buffer.concat([decipher.update(data), decipher.final()]);
   return dec.toString("utf8");
 }
-
-/* ===================== UTILITAIRES JSON ===================== */
-function readJSON(file, fallback) {
-  try {
-    if (fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, "utf8"));
-  } catch {}
-  return fallback;
-}
-function writeJSON(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
-}
-
-let releases = readJSON(RELEASES_FILE, { latest: "v1.0", items: [] });
-let stats = readJSON(STATS_FILE, { downloads: 0, bots: {} });
 
 /* ===================== EXPRESS / EJS ===================== */
 app.set("view engine", "ejs");
@@ -119,7 +101,7 @@ function requireOwner(req, res, next) {
   return res.status(403).render("forbidden", { user: req.user });
 }
 
-/* ===================== MULTER (UPLOAD) ===================== */
+/* ===================== MULTER (UPLOAD .zip) ===================== */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => {
@@ -149,13 +131,15 @@ function formatDate(iso) {
     return iso || "";
   }
 }
-function getCounters() {
-  const totalBots = Object.keys(stats.bots).length;
-  const upToDate = Object.values(stats.bots).filter(
-    (b) => b.botVersion === releases.latest
-  ).length;
-  const outdated = Math.max(0, totalBots - upToDate);
-  return { totalBots, upToDate, outdated };
+async function getStatsDoc() {
+  let s = await Stat.findOne();
+  if (!s) {
+    s = await Stat.create({
+      downloads: 0,
+      bots: {},
+    });
+  }
+  return s;
 }
 
 /* ===================== AUTH ===================== */
@@ -170,42 +154,59 @@ app.get("/forbidden", (req, res) =>
   res.status(403).render("forbidden", { user: req.user })
 );
 
-/* ===================== PUBLIC ===================== */
-app.get("/", (req, res) => {
-  const { totalBots, upToDate, outdated } = getCounters();
-  const last = releases.items.find((i) => i.version === releases.latest);
+/* ===================== PAGES PUBLIQUES ===================== */
+app.get("/", async (req, res) => {
+  const stats = await getStatsDoc();
+  const latest = await Release.findOne().sort({ createdAt: -1 });
+  const version = latest?.version || "v1.0";
   res.render("index", {
     user: req.user,
-    version: releases.latest,
-    last,
-    date: last ? formatDate(last.createdAt) : "–",
+    version,
+    last: latest || null,
+    date: latest ? formatDate(latest.createdAt) : "–",
     downloads: stats.downloads || 0,
-    totalBots,
-    upToDate,
-    outdated,
+    totalBots: Object.keys(stats.bots || {}).length,
+    upToDate: Object.values(stats.bots || {}).filter(
+      (b) => b.botVersion === version
+    ).length,
+    outdated:
+      Math.max(
+        0,
+        Object.keys(stats.bots || {}).length -
+          Object.values(stats.bots || {}).filter((b) => b.botVersion === version)
+            .length
+      ) || 0,
     support: SUPPORT_LINK,
   });
 });
 
-/* ===================== DASHBOARD ===================== */
-app.get("/dashboard", requireOwner, (req, res) => {
-  const { totalBots, upToDate, outdated } = getCounters();
-  const rel = [...releases.items].sort(
-    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-  );
+/* ===================== DASHBOARD (OWNER) ===================== */
+app.get("/dashboard", requireOwner, async (req, res) => {
+  const stats = await getStatsDoc();
+  const releases = await Release.find().sort({ createdAt: -1 });
+  const latest = releases[0]?.version || "v1.0";
+
   res.render("dashboard", {
     user: req.user,
-    latest: releases.latest,
-    releases: rel,
+    latest,
+    releases,
     stats,
-    totalBots,
-    upToDate,
-    outdated,
+    totalBots: Object.keys(stats.bots || {}).length,
+    upToDate: Object.values(stats.bots || {}).filter(
+      (b) => b.botVersion === latest
+    ).length,
+    outdated:
+      Math.max(
+        0,
+        Object.keys(stats.bots || {}).length -
+          Object.values(stats.bots || {}).filter((b) => b.botVersion === latest)
+            .length
+      ) || 0,
     support: SUPPORT_LINK,
   });
 });
 
-/* ===================== UPLOAD ===================== */
+/* ===================== UPLOAD RELEASE ===================== */
 app.post("/upload", requireOwner, (req, res) => {
   const m = upload.single("zip");
   m(req, res, async (err) => {
@@ -217,39 +218,60 @@ app.post("/upload", requireOwner, (req, res) => {
     if (!req.file) return res.status(400).send("Aucun fichier ZIP reçu.");
 
     const version = /^v/i.test(rawVersion) ? rawVersion : "v" + rawVersion;
+
+    // Renommage fichier pour cohérence
     const desiredName = `bot-${version}.zip`;
     const currentPath = path.join(UPLOAD_DIR, req.file.filename);
     const targetPath = path.join(UPLOAD_DIR, desiredName);
     if (req.file.filename !== desiredName) fs.renameSync(currentPath, targetPath);
 
-    const createdAt = new Date().toISOString();
-    const existingIndex = releases.items.findIndex((r) => r.version === version);
-    const record = { version, filename: desiredName, createdAt, notes };
-    if (existingIndex >= 0) releases.items[existingIndex] = record;
-    else releases.items.push(record);
-    releases.latest = version;
-    writeJSON(RELEASES_FILE, releases);
+    // Persistance Mongo (upsert par version)
+    await Release.findOneAndUpdate(
+      { version },
+      {
+        version,
+        filename: desiredName,
+        notes,
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
+    // Webhook Discord (optionnel)
     if (WEBHOOK_URL) {
-      const webhookBody = {
-        content: ROLE_ID ? `<@&${ROLE_ID}>` : null,
-        embeds: [
-          {
-            title: `🆕 Nouvelle version disponible — ${version}`,
-            description:
-              notes && notes.length
+      try {
+        const stats = await getStatsDoc();
+        const webhookBody = {
+          content: ROLE_ID ? `<@&${ROLE_ID}>` : null,
+          embeds: [
+            {
+              title: `🆕 Nouvelle version — ${version}`,
+              description: notes?.length
                 ? notes
                 : "Aucune note de version n’a été fournie.",
-            color: 0x6c8cff,
-            fields: [
-              { name: "Date", value: formatDate(createdAt), inline: true },
-              { name: "Téléchargements", value: `${stats.downloads}`, inline: true },
-            ],
-            footer: { text: "Home Update Panel" },
-          },
-        ],
-      };
-      try {
+              color: 0x6c8cff,
+              fields: [
+                { name: "Date", value: formatDate(new Date().toISOString()), inline: true },
+                { name: "Téléchargements", value: `${stats.downloads || 0}`, inline: true },
+              ],
+              footer: { text: "Home Update Panel" },
+            },
+          ],
+          components: [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  style: 5,
+                  label: "Accéder à la mise à jour",
+                  url: `${req.protocol}://${req.get("host")}/uploads/${encodeURIComponent(
+                    desiredName
+                  )}`,
+                },
+              ],
+            },
+          ],
+        };
         await fetch(WEBHOOK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -265,69 +287,136 @@ app.post("/upload", requireOwner, (req, res) => {
   });
 });
 
-/* ===================== OWNER BOTS ===================== */
+/* ===================== DELETE RELEASE ===================== */
+app.post("/delete/:version", requireOwner, async (req, res) => {
+  const { version } = req.params;
+  const rel = await Release.findOne({ version });
+  if (!rel) return res.status(404).send("Version introuvable.");
+
+  const filePath = path.join(UPLOAD_DIR, rel.filename);
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+  await Release.deleteOne({ version });
+  console.log(`🗑️ Release ${version} supprimée`);
+  res.redirect("/dashboard");
+});
+
+/* ===================== REVERT RELEASE ===================== */
+app.post("/releases/:version/revert", requireOwner, async (req, res) => {
+  const { version } = req.params;
+  const rel = await Release.findOne({ version });
+  if (!rel) return res.json({ ok: false, error: "Version introuvable." });
+
+  // Rien à changer en DB pour “latest” (on lit toujours la + récente),
+  // mais si tu veux “pinner” une version comme latest, ajoute un champ isPinned.
+  // Ici, on duplique le comportement en forçant la date pour la faire remonter :
+  await Release.updateOne({ _id: rel._id }, { createdAt: new Date() });
+
+  if (WEBHOOK_URL) {
+    try {
+      const webhookBody = {
+        content: ROLE_ID ? `<@&${ROLE_ID}>` : null,
+        embeds: [
+          {
+            title: `🔁 Reversion effectuée — ${version}`,
+            description: "L’ancienne version est redevenue la version active.",
+            color: 0xffb347,
+            footer: { text: "Home Update Panel" },
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      };
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(webhookBody),
+      });
+      console.log("♻️ Reversion annoncée sur Discord");
+    } catch (e) {
+      console.error("❌ Erreur Webhook revert :", e);
+    }
+  }
+
+  res.json({ ok: true });
+});
+
+/* ===================== OWNER : BOTS ===================== */
 app.get("/owner/bots", requireOwner, async (req, res) => {
-  const bots = await Bot.find().sort({ createdAt: -1 });
-  res.render("owner_bots", { user: req.user, bots });
+  const bots = await Bot.find().sort({ createdAt: -1 }).lean();
+  res.render("owner_bots", { user: req.user, bots, support: SUPPORT_LINK });
 });
 
 app.post("/owner/bots/add", requireOwner, async (req, res) => {
   const { name, ownerId, tokenPlain, notes } = req.body;
-  const bot = new Bot({
+  if (!name || !tokenPlain) return res.status(400).send("Nom et token requis.");
+  await Bot.create({
     name,
     ownerId: ownerId || OWNER_ID,
     token: encrypt(tokenPlain),
-    meta: { notes },
+    meta: { notes: notes || "" },
   });
-  await bot.save();
   res.redirect("/owner/bots");
 });
 
-/* ===================== API REPORT ===================== */
+app.post("/owner/bots/:id/delete", requireOwner, async (req, res) => {
+  const { id } = req.params;
+  await Bot.deleteOne({ _id: id });
+  await Report.deleteMany({ botId: id });
+  res.redirect("/owner/bots");
+});
+
+app.get("/owner/bots/:id/decrypt", requireOwner, async (req, res) => {
+  const { id } = req.params;
+  const b = await Bot.findById(id);
+  if (!b) return res.status(404).send("Bot introuvable.");
+  return res.json({ token: decrypt(b.token) });
+});
+
+/* ===================== API : REPORTS DES BOTS ===================== */
 app.post("/api/report", async (req, res) => {
   const { botId, type, payload } = req.body;
-  if (!botId || !type)
-    return res.status(400).json({ error: "botId et type requis" });
+  if (!botId || !type) return res.status(400).json({ error: "botId et type requis" });
 
-  const report = new Report({ botId, type, payload });
-  await report.save();
+  await Report.create({ botId, type, payload });
 
   const bot = await Bot.findById(botId);
   if (bot) {
-    bot.stats.lastCheck = new Date();
-    if (type === "ready") bot.stats.lastReady = new Date();
-    if (type === "restart") bot.stats.restarts++;
-    if (type === "error") bot.stats.errors++;
+    const stats = bot.stats || {};
+    stats.lastCheck = new Date();
+    if (type === "ready") stats.lastReady = new Date();
+    if (type === "restart") stats.restarts = (stats.restarts || 0) + 1;
+    if (type === "error") stats.errors = (stats.errors || 0) + 1;
+    bot.stats = stats;
     await bot.save();
   }
 
   res.json({ ok: true });
 });
 
-/* ===================== API VERSION ===================== */
-app.get("/api/version", (req, res) => {
+/* ===================== API : VERSION POUR LES BOTS ===================== */
+app.get("/api/version", async (req, res) => {
   const botId = (req.query.bot_id || "unknown").toString();
   const botVersion = (req.query.version || "unknown").toString();
 
+  const stats = await getStatsDoc();
   stats.downloads = (stats.downloads || 0) + 1;
+  stats.bots = stats.bots || {};
   stats.bots[botId] = { botVersion, lastCheck: new Date().toISOString() };
-  writeJSON(STATS_FILE, stats);
+  await stats.save();
 
-  const rec = releases.items.find((r) => r.version === releases.latest);
+  const latest = await Release.findOne().sort({ createdAt: -1 });
   const url =
-    rec &&
-    `${req.protocol}://${req.get("host")}/uploads/${encodeURIComponent(
-      rec.filename
-    )}`;
+    latest &&
+    `${req.protocol}://${req.get("host")}/uploads/${encodeURIComponent(latest.filename)}`;
 
   res.json({
-    version: releases.latest,
-    download: url,
+    version: latest?.version || "v1.0",
+    download: url || null,
     message: "Dernière version disponible",
   });
 });
 
-/* ===================== LANCEMENT ===================== */
+/* ===================== START ===================== */
 app.listen(PORT, () =>
   console.log(`✅ Panel en ligne sur http://localhost:${PORT}`)
 );

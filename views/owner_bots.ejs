@@ -1,91 +1,74 @@
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Gestion des Bots — Dashboard</title>
-    <link rel="stylesheet" href="/style.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  </head>
-  <body class="bg-gray-900 text-white font-sans">
-    <div class="container mx-auto py-10 px-4">
-      <h1 class="text-3xl font-bold mb-6">👑 Gestion des Bots</h1>
-
-      <form action="/owner/bots/add" method="POST" class="mb-8 bg-gray-800 p-4 rounded-lg">
-        <h2 class="text-xl mb-3">➕ Ajouter un Bot</h2>
-        <input name="name" placeholder="Nom du bot" required class="input mb-2 w-full" />
-        <input name="tokenPlain" placeholder="Token du bot" required class="input mb-2 w-full" />
-        <textarea name="notes" placeholder="Notes (facultatif)" class="input mb-2 w-full"></textarea>
-        <button type="submit" class="btn bg-green-600 hover:bg-green-700">Ajouter</button>
-      </form>
-
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="border-b border-gray-700">
-            <th class="p-2">Nom</th>
-            <th class="p-2">Dernier Ready</th>
-            <th class="p-2">Dernier Check</th>
-            <th class="p-2">Redémarrages</th>
-            <th class="p-2">Erreurs</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% bots.forEach(bot => { %>
-            <tr class="border-b border-gray-800">
-              <td class="p-2 font-semibold"><%= bot.name %></td>
-              <td class="p-2"><%= bot.stats.lastReady ? new Date(bot.stats.lastReady).toLocaleString("fr-FR") : "Jamais" %></td>
-              <td class="p-2"><%= bot.stats.lastCheck ? new Date(bot.stats.lastCheck).toLocaleString("fr-FR") : "Jamais" %></td>
-              <td class="p-2 text-yellow-400"><%= bot.stats.restarts %></td>
-              <td class="p-2 text-red-400"><%= bot.stats.errors %></td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-
-      <canvas id="chart" width="400" height="150" class="mt-8"></canvas>
+<head>
+  <meta charset="utf-8" />
+  <title>Bots Clients • HOME UPDATE</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .bot-row { cursor:pointer; transition:background .2s; padding:10px; border-bottom:1px solid #333; }
+    .bot-row:hover { background:rgba(255,255,255,0.05); }
+    .bot-details { display:none; background:#141414; padding:10px 15px; border-left:3px solid #6c8cff; margin-bottom:8px; border-radius:8px; }
+    .bot-details.open { display:block; }
+    .token-mask { background:#222; padding:3px 8px; border-radius:5px; font-family:monospace; color:#ccc; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="brand">
+      <img src="/logo.png" alt="HOME UPDATE" class="nav-logo" />
+      <span class="brand-text">HOME UPDATE</span>
     </div>
+    <div class="nav-right">
+      <a class="btn" href="/dashboard">Dashboard</a>
+      <a class="btn danger" href="/logout">Déconnexion</a>
+    </div>
+  </nav>
 
-    <script>
-      const ctx = document.getElementById("chart");
-      const data = {
-        labels: <%- JSON.stringify(bots.map(b => b.name)) %>,
-        datasets: [
-          {
-            label: "Redémarrages",
-            data: <%- JSON.stringify(bots.map(b => b.stats.restarts)) %>,
-            backgroundColor: "rgba(75, 192, 192, 0.6)",
-          },
-          {
-            label: "Erreurs",
-            data: <%- JSON.stringify(bots.map(b => b.stats.errors)) %>,
-            backgroundColor: "rgba(255, 99, 132, 0.6)",
-          }
-        ]
-      };
+  <main class="container">
+    <header class="hero">
+      <h1>Gestion des Bots</h1>
+      <p>Liste de tous les bots enregistrés dans la base.</p>
+    </header>
 
-      new Chart(ctx, {
-        type: "bar",
-        data,
-        options: {
-          scales: { y: { beginAtZero: true } },
-          plugins: { legend: { labels: { color: "white" } } },
-        }
+    <div class="card">
+      <% if (bots.length === 0) { %>
+        <p class="muted">Aucun bot enregistré pour le moment.</p>
+      <% } else { %>
+        <% bots.forEach(bot => { %>
+          <div class="bot-row" data-id="<%= bot._id %>">
+            <strong><%= bot.name %></strong> — ajouté le <%= new Date(bot.createdAt).toLocaleString("fr-FR",{dateStyle:"medium", timeStyle:"short"}) %>
+            <div class="bot-details" id="details-<%= bot._id %>">
+              <p><b>ID du bot :</b> <%= bot._id %></p>
+              <p><b>Propriétaire :</b> <%= bot.ownerId %></p>
+              <p><b>Créé le :</b> <%= new Date(bot.createdAt).toLocaleString("fr-FR",{dateStyle:"medium", timeStyle:"short"}) %></p>
+              <p><b>Token :</b> <span class="token-mask">•••••••••••••••••••••••••••••••</span></p>
+              <% if (bot.meta && bot.meta.notes) { %>
+                <p><b>Notes :</b> <%= bot.meta.notes %></p>
+              <% } %>
+              <% if (bot.stats) { %>
+                <p><b>Dernier Ready :</b> <%= bot.stats.lastReady ? new Date(bot.stats.lastReady).toLocaleString("fr-FR",{dateStyle:"medium", timeStyle:"short"}) : "–" %></p>
+                <p><b>Redémarrages :</b> <%= bot.stats.restarts || 0 %> · <b>Erreurs :</b> <%= bot.stats.errors || 0 %></p>
+              <% } %>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </main>
+
+  <footer class="footer">
+    © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
+    <a href="https://discord.gg/b9tS35tkjN" target="_blank" rel="noopener">Discord</a>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.bot-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const id = row.dataset.id;
+        document.getElementById('details-' + id).classList.toggle('open');
       });
-    </script>
-
-    <style>
-      body { font-family: "Inter", sans-serif; }
-      .input {
-        background: #1f2937;
-        color: white;
-        padding: 8px;
-        border-radius: 6px;
-        border: 1px solid #374151;
-      }
-      .btn {
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-weight: bold;
-      }
-    </style>
-  </body>
+    });
+  </script>
+</body>
 </html>

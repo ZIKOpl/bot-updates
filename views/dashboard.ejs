@@ -15,6 +15,7 @@
     </div>
     <div class="nav-right">
       <a class="btn" href="/">Accueil</a>
+      <a class="btn" href="/owner/bots">Mes Bots</a>
       <a class="btn danger" href="/logout">Déconnexion</a>
     </div>
   </nav>
@@ -26,19 +27,16 @@
     </header>
 
     <section class="dashboard-flex">
-
       <!-- Upload -->
       <div class="card upload-card card-tilt">
         <h2>📥 Nouvelle release</h2>
         <form id="uploadForm" class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
           <input class="input" type="text" name="version" placeholder="Numéro de version (ex : 2.6)" required />
           <textarea class="input textarea" name="notes" rows="3" placeholder="Notes de version (changements, corrections…)"></textarea>
-
           <div id="dropZone" class="drop-zone">
             <span id="uploadText">Glisse ton fichier .zip ici ou clique pour le choisir</span>
             <input id="fileInput" type="file" name="zip" accept=".zip" hidden />
           </div>
-
           <button type="submit" class="btn primary">Uploader</button>
         </form>
       </div>
@@ -56,9 +54,7 @@
                   <div class="release-dot"><%= r.version %></div>
                   <div class="release-meta">
                     <div class="release-title"><%= r.version %></div>
-                    <div class="muted">
-                      <%= new Date(r.createdAt).toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}) %>
-                    </div>
+                    <div class="muted"><%= new Date(r.createdAt).toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}) %></div>
                     <% if (r.notes) { %>
                       <div class="muted" style="margin-top:6px"><%= r.notes %></div>
                     <% } %>
@@ -87,7 +83,7 @@
   </footer>
 
   <script>
-    // Drag & Drop + click
+    // Drag & Drop
     const drop = document.getElementById('dropZone');
     const input = document.getElementById('fileInput');
     const text = document.getElementById('uploadText');
