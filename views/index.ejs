@@ -12,10 +12,7 @@
       <img src="/logo.png" alt="HOME UPDATE" class="nav-logo" />
       <span class="brand-text">HOME UPDATE</span>
     </div>
-
-    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
-
-    <div class="nav-right" id="navMenu">
+    <div class="actions">
       <% if (user) { %>
         <a class="btn" href="/dashboard">Dashboard</a>
         <a class="btn danger" href="/logout">Déconnexion</a>
@@ -73,18 +70,7 @@
 
   <footer class="footer">
     © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
-    <a href="/terms">Termes</a> ·
     <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
   </footer>
-
-  <script>
-    const toggle = document.getElementById("menuToggle");
-    const menu = document.getElementById("navMenu");
-    toggle.addEventListener("click", () => menu.classList.toggle("show"));
-    window.addEventListener("click", e => {
-      if (!toggle.contains(e.target) && !menu.contains(e.target))
-        menu.classList.remove("show");
-    });
-  </script>
 </body>
 </html>
