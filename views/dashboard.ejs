@@ -14,13 +14,18 @@
       <span class="brand-text">HOME UPDATE</span>
     </div>
 
-    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
-
-    <div class="nav-right" id="navMenu">
-      <a class="btn" href="/">Accueil</a>
-      <a class="btn danger" href="/logout">Déconnexion</a>
+    <div class="hamburger" id="hamburger">
+      <span></span><span></span><span></span>
     </div>
   </nav>
+
+  <!-- MENU MOBILE -->
+  <div class="mobile-menu" id="mobileMenu">
+    <span class="close-menu" id="closeMenu">✕</span>
+    <a href="/">Accueil</a>
+    <a href="/logout" class="danger">Déconnexion</a>
+    <a href="<%= support %>" target="_blank" rel="noopener" class="footer-link">Serveur Discord</a>
+  </div>
 
   <main class="container">
     <header class="hero">
@@ -83,25 +88,23 @@
 
   <footer class="footer">
     © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
-    <a href="<%= support || 'https://discord.gg/b9tS35tkjN' %>" target="_blank" rel="noopener">Discord</a>
+    <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
   </footer>
 
   <script>
-    // Menu mobile
-    const toggle = document.getElementById("menuToggle");
-    const menu = document.getElementById("navMenu");
-    toggle.addEventListener("click", () => menu.classList.toggle("show"));
-    window.addEventListener("click", e => {
-      if (!toggle.contains(e.target) && !menu.contains(e.target))
-        menu.classList.remove("show");
-    });
+    // === MENU MOBILE ===
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const closeMenu = document.getElementById('closeMenu');
 
-    // Drag & Drop
+    hamburger.addEventListener('click', () => mobileMenu.classList.add('active'));
+    closeMenu.addEventListener('click', () => mobileMenu.classList.remove('active'));
+
+    // === DRAG & DROP ===
     const drop = document.getElementById('dropZone');
     const input = document.getElementById('fileInput');
     const text = document.getElementById('uploadText');
     const form = document.getElementById('uploadForm');
-
     drop.addEventListener('click', () => input.click());
     drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('hover'); });
     drop.addEventListener('dragleave', () => drop.classList.remove('hover'));
@@ -117,7 +120,7 @@
     });
     form.addEventListener('submit', () => { text.textContent = 'Upload en cours…'; });
 
-    // Menus ⋮
+    // === MENUS ⋮ ===
     document.querySelectorAll('.more-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();

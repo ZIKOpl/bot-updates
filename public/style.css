@@ -193,40 +193,85 @@ body::after{background:#00ffff; bottom:-150px; right:-150px; animation-delay:6s}
   .strip-right{justify-content:space-between}
 }
 
-.menu-toggle {
+/* ===== MENU MOBILE ===== */
+.hamburger {
   display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 28px;
+  height: 22px;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+.hamburger span {
+  height: 3px;
+  background: var(--text);
+  border-radius: 4px;
+  transition: all .3s ease;
+}
+
+.mobile-menu {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 17, 0.95);
+  backdrop-filter: blur(25px);
+  z-index: 1000;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.mobile-menu.active {
+  display: flex;
+  animation: fadeIn .3s ease;
+}
+
+.close-menu {
+  position: absolute;
+  top: 20px;
+  right: 24px;
   font-size: 28px;
-  background: none;
-  border: none;
   color: var(--text);
   cursor: pointer;
 }
 
-@media (max-width: 850px) {
-  .menu-toggle {
-    display: block;
-  }
-  .nav-right {
+.mobile-menu a {
+  display: block;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 1.4rem;
+  margin: 14px 0;
+  transition: color .3s ease;
+}
+
+.mobile-menu a:hover {
+  color: var(--accent);
+}
+
+.mobile-menu .footer-link {
+  position: absolute;
+  bottom: 25px;
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 800px) {
+  .nav .btn {
     display: none;
-    flex-direction: column;
-    width: 100%;
-    background: rgba(15, 20, 35, 0.95);
-    border-top: 1px solid var(--border);
-    border-radius: 0 0 var(--radius) var(--radius);
-    padding: 10px 0;
-    animation: fadeIn 0.25s ease;
   }
-  .nav-right.show {
+  .hamburger {
     display: flex;
-  }
-  .nav-right a {
-    width: 90%;
-    margin: 6px auto;
-    text-align: center;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    position: absolute;
+    right: 20px;
   }
 }
 
