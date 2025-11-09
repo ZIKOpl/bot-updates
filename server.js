@@ -15,6 +15,7 @@ const SESSION_SECRET = process.env.SESSION_SECRET || "super_secret_session";
 const PORT = process.env.PORT || 3000;
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const ROLE_ID = process.env.DISCORD_ROLE_ID;
+const SUPPORT_LINK = "https://discord.gg/b9tS35tkjN"; // ✅ Ton lien Discord
 
 const DATA_DIR = path.join(__dirname, "data");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
@@ -142,6 +143,7 @@ app.get("/", (req, res) => {
     totalBots,
     upToDate,
     outdated,
+    support: SUPPORT_LINK, // ✅ ajouté
   });
 });
 
@@ -159,6 +161,7 @@ app.get("/dashboard", requireOwner, (req, res) => {
     totalBots,
     upToDate,
     outdated,
+    support: SUPPORT_LINK, // ✅ ajouté
   });
 });
 
