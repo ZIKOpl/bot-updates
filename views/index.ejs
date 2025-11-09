@@ -7,33 +7,24 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <!-- NAV -->
   <nav class="nav">
     <div class="brand">
       <img src="/logo.png" alt="HOME UPDATE" class="nav-logo" />
       <span class="brand-text">HOME UPDATE</span>
     </div>
 
-    <div class="hamburger" id="hamburger">
-      <span></span><span></span><span></span>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+
+    <div class="nav-right" id="navMenu">
+      <% if (user) { %>
+        <a class="btn" href="/dashboard">Dashboard</a>
+        <a class="btn danger" href="/logout">Déconnexion</a>
+      <% } else { %>
+        <a class="btn primary" href="/login">Connexion Discord</a>
+      <% } %>
     </div>
   </nav>
 
-  <!-- MENU MOBILE -->
-  <div class="mobile-menu" id="mobileMenu">
-    <span class="close-menu" id="closeMenu">✕</span>
-    <% if (user) { %>
-      <a href="/">Accueil</a>
-      <a href="/dashboard">Dashboard</a>
-      <a href="/logout" class="danger">Déconnexion</a>
-    <% } else { %>
-      <a href="/">Accueil</a>
-      <a href="/login" class="primary">Connexion Discord</a>
-    <% } %>
-    <a href="<%= support %>" target="_blank" rel="noopener" class="footer-link">Serveur Discord</a>
-  </div>
-
-  <!-- MAIN -->
   <main class="container">
     <header class="hero" style="text-align:left;">
       <h1>HOME UPDATE</h1>
@@ -61,7 +52,7 @@
 
     <section class="home-tiles">
       <div class="tile card-tilt">
-        <h2>📘 COMMENT METTRE À JOUR TON BOT</h2>
+        <h2>COMMENT METTRE À JOUR TON BOT</h2>
         <ul class="steps">
           <li>1. SUR DISCORD, ENTRE <strong>+UPDATE</strong>.</li>
           <li>2. ATTENDS QUE LE BOT INSTALLE LES FICHIERS.</li>
@@ -70,7 +61,7 @@
       </div>
 
       <div class="tile card-tilt">
-        <h2>📊 STATISTIQUES</h2>
+        <h2>STATISTIQUES</h2>
         <div class="stat-grid">
           <div class="stat"><div class="stat-kpi"><%= totalBots %></div><div class="stat-label">Total bots</div></div>
           <div class="stat"><div class="stat-kpi"><%= upToDate %></div><div class="stat-label">À jour</div></div>
@@ -82,18 +73,18 @@
 
   <footer class="footer">
     © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
+    <a href="/terms">Termes</a> ·
     <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
   </footer>
 
-  <!-- SCRIPT -->
   <script>
-    // === MENU MOBILE ===
-    const hamburger = document.getElementById('hamburger');
-    const mobileMenu = document.getElementById('mobileMenu');
-    const closeMenu = document.getElementById('closeMenu');
-
-    hamburger.addEventListener('click', () => mobileMenu.classList.add('active'));
-    closeMenu.addEventListener('click', () => mobileMenu.classList.remove('active'));
+    const toggle = document.getElementById("menuToggle");
+    const menu = document.getElementById("navMenu");
+    toggle.addEventListener("click", () => menu.classList.toggle("show"));
+    window.addEventListener("click", e => {
+      if (!toggle.contains(e.target) && !menu.contains(e.target))
+        menu.classList.remove("show");
+    });
   </script>
 </body>
 </html>

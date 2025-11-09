@@ -13,19 +13,11 @@
       <img src="/logo.png" alt="HOME UPDATE" class="nav-logo" />
       <span class="brand-text">HOME UPDATE</span>
     </div>
-
-    <div class="hamburger" id="hamburger">
-      <span></span><span></span><span></span>
+    <div class="nav-right">
+      <a class="btn" href="/">Accueil</a>
+      <a class="btn danger" href="/logout">Déconnexion</a>
     </div>
   </nav>
-
-  <!-- MENU MOBILE -->
-  <div class="mobile-menu" id="mobileMenu">
-    <span class="close-menu" id="closeMenu">✕</span>
-    <a href="/">Accueil</a>
-    <a href="/logout" class="danger">Déconnexion</a>
-    <a href="<%= support %>" target="_blank" rel="noopener" class="footer-link">Serveur Discord</a>
-  </div>
 
   <main class="container">
     <header class="hero">
@@ -34,6 +26,8 @@
     </header>
 
     <section class="dashboard-flex">
+
+      <!-- Upload -->
       <div class="card upload-card card-tilt">
         <h2>📥 Nouvelle release</h2>
         <form id="uploadForm" class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
@@ -49,6 +43,7 @@
         </form>
       </div>
 
+      <!-- Liste versions -->
       <div class="card timeline-card card-tilt">
         <h2>🕒 Versions précédentes</h2>
         <% if (releases.length === 0) { %>
@@ -88,23 +83,17 @@
 
   <footer class="footer">
     © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
+    <a href="/terms">Termes</a> ·
     <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
   </footer>
 
   <script>
-    // === MENU MOBILE ===
-    const hamburger = document.getElementById('hamburger');
-    const mobileMenu = document.getElementById('mobileMenu');
-    const closeMenu = document.getElementById('closeMenu');
-
-    hamburger.addEventListener('click', () => mobileMenu.classList.add('active'));
-    closeMenu.addEventListener('click', () => mobileMenu.classList.remove('active'));
-
-    // === DRAG & DROP ===
+    // Drag & Drop + click
     const drop = document.getElementById('dropZone');
     const input = document.getElementById('fileInput');
     const text = document.getElementById('uploadText');
     const form = document.getElementById('uploadForm');
+
     drop.addEventListener('click', () => input.click());
     drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('hover'); });
     drop.addEventListener('dragleave', () => drop.classList.remove('hover'));
@@ -120,7 +109,7 @@
     });
     form.addEventListener('submit', () => { text.textContent = 'Upload en cours…'; });
 
-    // === MENUS ⋮ ===
+    // Menus ⋮
     document.querySelectorAll('.more-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
