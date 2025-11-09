@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Termes & Conditions • HOME UPDATE</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="brand">
+      <img src="/logo.png" alt="HOME UPDATE" class="nav-logo" />
+      <span class="brand-text">HOME UPDATE</span>
+    </div>
+    <div class="nav-right">
+      <a class="btn" href="/">Accueil</a>
+      <a class="btn" href="/support">Discord</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <header class="hero">
+      <h1>Termes & Conditions</h1>
+      <p class="muted">Dernière mise à jour : <%= new Date().toLocaleDateString("fr-FR") %></p>
+    </header>
+
+    <section class="card card-glow" style="max-width:900px;margin:0 auto 48px">
+      <h2>1. Service</h2>
+      <p>Le panneau HOME UPDATE fournit un service d’hébergement de versions et de distribution automatique pour bots Discord.</p>
+
+      <h2>2. Responsabilité</h2>
+      <p>Tu es responsable du contenu que tu publies et des fichiers que tu distribues via le service.</p>
+
+      <h2>3. Sécurité</h2>
+      <p>Ne publie jamais d’informations sensibles (tokens, mots de passe). Le service ne stocke pas ces informations.</p>
+
+      <h2>4. Support</h2>
+      <p>Besoin d’aide ? Rejoins notre <a href="/support">serveur Discord</a>.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
+    <a href="/terms">Termes</a> ·
+    <a href="/support">Support</a>
+  </footer>
+</body>
+</html>

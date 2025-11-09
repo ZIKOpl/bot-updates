@@ -17,6 +17,7 @@ const DATA_DIR = path.join(__dirname, "data");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 const RELEASES_FILE = path.join(DATA_DIR, "releases.json");
 const STATS_FILE = path.join(DATA_DIR, "stats.json");
+const DISCORD_INVITE = "https://discord.gg/b9tS35tkjN";
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
@@ -48,9 +49,7 @@ let stats = readJSON(STATS_FILE, { downloads: 0, bots: {} });
 app.set("view engine", "ejs");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// ✅ sert le CSS, images, etc.
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public"))); // CSS / images
 app.use("/uploads", express.static(UPLOAD_DIR));
 
 app.use(
@@ -141,6 +140,13 @@ app.get("/forbidden", (req, res) =>
   res.status(403).render("forbidden", { user: req.user })
 );
 
+/* ===================== PAGES UTILES ===================== */
+app.get("/support", (_req, res) => res.redirect(DISCORD_INVITE));
+
+app.get("/terms", (_req, res) => {
+  res.render("terms");
+});
+
 /* ===================== PUBLIC ===================== */
 app.get("/", (req, res) => {
   const { totalBots, upToDate, outdated } = getCounters();
@@ -154,6 +160,7 @@ app.get("/", (req, res) => {
     totalBots,
     upToDate,
     outdated,
+    support: DISCORD_INVITE,
   });
 });
 
@@ -171,17 +178,54 @@ app.get("/dashboard", requireOwner, (req, res) => {
     totalBots,
     upToDate,
     outdated,
+    support: DISCORD_INVITE,
   });
+});
+
+/* Revenir à une version (action du menu ⋮) */
+app.post("/releases/:version/revert", requireOwner, (req, res) => {
+  const v = req.params.version;
+  const exists = releases.items.find((r) => r.version === v);
+  if (!exists) return res.status(404).json({ ok: false, error: "Version inconnue" });
+
+  releases.latest = v;
+  writeJSON(RELEASES_FILE, releases);
+  return res.json({ ok: true, latest: v });
+});
+
+/* Supprimer une version (action du menu ⋮) */
+app.post("/releases/:version/delete", requireOwner, (req, res) => {
+  const v = req.params.version;
+  const idx = releases.items.findIndex((r) => r.version === v);
+  if (idx === -1) return res.status(404).json({ ok: false, error: "Version inconnue" });
+
+  const rec = releases.items[idx];
+  const filePath = path.join(UPLOAD_DIR, rec.filename);
+  try {
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  } catch {}
+  releases.items.splice(idx, 1);
+
+  // Si on supprime la dernière, on recalcule latest
+  if (releases.latest === v) {
+    if (releases.items.length) {
+      releases.latest = releases.items
+        .slice()
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0].version;
+    } else {
+      releases.latest = "v1.0";
+    }
+  }
+  writeJSON(RELEASES_FILE, releases);
+  return res.json({ ok: true, latest: releases.latest });
 });
 
 /* ===================== UPLOAD ===================== */
 app.post("/upload", requireOwner, (req, res) => {
   const m = upload.single("zip");
   m(req, res, (err) => {
-    if (err) {
-      console.error("Multer error:", err);
-      return res.status(400).send(err.message || "Erreur d’upload");
-    }
+    if (err) return res.status(400).send(err.message || "Erreur d’upload");
+
     const rawVersion = (req.body.version || "").trim();
     const notes = (req.body.notes || "").trim();
     if (!rawVersion) return res.status(400).send("Version manquante.");
@@ -195,8 +239,7 @@ app.post("/upload", requireOwner, (req, res) => {
     if (req.file.filename !== desiredName) {
       try {
         fs.renameSync(currentPath, targetPath);
-      } catch (e) {
-        console.error(e);
+      } catch {
         return res.status(500).send("Impossible de renommer le fichier.");
       }
     }
