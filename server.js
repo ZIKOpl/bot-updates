@@ -260,7 +260,7 @@ app.post("/upload", requireOwner, (req, res) => {
   });
 });
 
-/* ===================== OWNER : BOTS ===================== */
+/* ===================== OWNER : GESTION DES BOTS ===================== */
 app.get("/owner/bots", requireOwner, async (req, res) => {
   const bots = await Bot.find().sort({ createdAt: -1 }).lean();
   res.render("owner_bots", { user: req.user, bots, support: SUPPORT_LINK });
@@ -269,19 +269,27 @@ app.get("/owner/bots", requireOwner, async (req, res) => {
 app.post("/owner/bots/add", requireOwner, async (req, res) => {
   const { name, ownerId, tokenPlain, notes } = req.body;
   if (!name || !tokenPlain) return res.status(400).send("Nom et token requis.");
+
   await Bot.create({
     name,
     ownerId: ownerId || OWNER_ID,
     token: encrypt(tokenPlain),
     meta: { notes: notes || "" },
+    stats: { restarts: 0, errors: 0 },
   });
+
   res.redirect("/owner/bots");
 });
 
 app.post("/owner/bots/:id/delete", requireOwner, async (req, res) => {
   const { id } = req.params;
+  const bot = await Bot.findById(id);
+  if (!bot) return res.status(404).send("Bot introuvable.");
+
   await Bot.deleteOne({ _id: id });
   await Report.deleteMany({ botId: id });
+
+  console.log(`🗑️ Bot supprimé : ${bot.name}`);
   res.redirect("/owner/bots");
 });
 
@@ -289,7 +297,10 @@ app.get("/owner/bots/:id/decrypt", requireOwner, async (req, res) => {
   const { id } = req.params;
   const b = await Bot.findById(id);
   if (!b) return res.status(404).send("Bot introuvable.");
-  return res.json({ token: decrypt(b.token) });
+  return res.json({
+    token: decrypt(b.token),
+    name: b.name,
+  });
 });
 
 /* ===================== API : REPORTS ===================== */

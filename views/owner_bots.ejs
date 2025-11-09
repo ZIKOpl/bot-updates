@@ -2,15 +2,23 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Bots Clients • HOME UPDATE</title>
+  <title>Gestion des bots • HOME UPDATE</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/style.css" />
   <style>
-    .bot-row { cursor:pointer; transition:background .2s; padding:10px; border-bottom:1px solid #333; }
-    .bot-row:hover { background:rgba(255,255,255,0.05); }
-    .bot-details { display:none; background:#141414; padding:10px 15px; border-left:3px solid #6c8cff; margin-bottom:8px; border-radius:8px; }
-    .bot-details.open { display:block; }
-    .token-mask { background:#222; padding:3px 8px; border-radius:5px; font-family:monospace; color:#ccc; }
+    .bot-card {
+      border: 1px solid #444;
+      background: #1b1b1b;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      transition: 0.2s;
+    }
+    .bot-card:hover { background: #222; }
+    .bot-details { display: none; padding: 8px 0 0 0; border-top: 1px solid #333; margin-top: 6px; }
+    .bot-card.open .bot-details { display: block; }
+    .bot-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .bot-actions button { margin-left: 6px; }
   </style>
 </head>
 <body>
@@ -21,52 +29,67 @@
     </div>
     <div class="nav-right">
       <a class="btn" href="/dashboard">Dashboard</a>
+      <a class="btn" href="/">Accueil</a>
       <a class="btn danger" href="/logout">Déconnexion</a>
     </div>
   </nav>
 
   <main class="container">
     <header class="hero">
-      <h1>Gestion des Bots</h1>
-      <p>Liste de tous les bots enregistrés dans la base.</p>
+      <h1>🤖 Gestion des Bots</h1>
+      <p>Liste complète des bots enregistrés.</p>
     </header>
 
-    <div class="card">
+    <section>
       <% if (bots.length === 0) { %>
-        <p class="muted">Aucun bot enregistré pour le moment.</p>
+        <p class="muted">Aucun bot enregistré.</p>
       <% } else { %>
         <% bots.forEach(bot => { %>
-          <div class="bot-row" data-id="<%= bot._id %>">
-            <strong><%= bot.name %></strong> — ajouté le <%= new Date(bot.createdAt).toLocaleString("fr-FR",{dateStyle:"medium", timeStyle:"short"}) %>
-            <div class="bot-details" id="details-<%= bot._id %>">
-              <p><b>ID du bot :</b> <%= bot._id %></p>
-              <p><b>Propriétaire :</b> <%= bot.ownerId %></p>
-              <p><b>Créé le :</b> <%= new Date(bot.createdAt).toLocaleString("fr-FR",{dateStyle:"medium", timeStyle:"short"}) %></p>
-              <p><b>Token :</b> <span class="token-mask">•••••••••••••••••••••••••••••••</span></p>
-              <% if (bot.meta && bot.meta.notes) { %>
-                <p><b>Notes :</b> <%= bot.meta.notes %></p>
-              <% } %>
-              <% if (bot.stats) { %>
-                <p><b>Dernier Ready :</b> <%= bot.stats.lastReady ? new Date(bot.stats.lastReady).toLocaleString("fr-FR",{dateStyle:"medium", timeStyle:"short"}) : "–" %></p>
-                <p><b>Redémarrages :</b> <%= bot.stats.restarts || 0 %> · <b>Erreurs :</b> <%= bot.stats.errors || 0 %></p>
+          <div class="bot-card" data-id="<%= bot._id %>">
+            <div class="bot-header">
+              <strong><%= bot.name %></strong>
+              <div class="bot-actions">
+                <button class="btn small decrypt-btn" data-id="<%= bot._id %>">🔐 Voir Token</button>
+                <form action="/owner/bots/<%= bot._id %>/delete" method="POST" style="display:inline;">
+                  <button type="submit" class="btn danger small">🗑️ Supprimer</button>
+                </form>
+              </div>
+            </div>
+            <div class="bot-details">
+              <p><strong>Propriétaire :</strong> <%= bot.ownerId %></p>
+              <p><strong>Ajouté le :</strong> <%= new Date(bot.createdAt).toLocaleString("fr-FR") %></p>
+              <p><strong>Dernier READY :</strong> <%= bot.stats?.lastReady ? new Date(bot.stats.lastReady).toLocaleString("fr-FR") : "Jamais" %></p>
+              <p><strong>Redémarrages :</strong> <%= bot.stats?.restarts || 0 %></p>
+              <p><strong>Erreurs :</strong> <%= bot.stats?.errors || 0 %></p>
+              <% if (bot.meta?.notes) { %>
+                <p><strong>Notes :</strong> <%= bot.meta.notes %></p>
               <% } %>
             </div>
           </div>
         <% }) %>
       <% } %>
-    </div>
+    </section>
   </main>
 
   <footer class="footer">
     © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
-    <a href="https://discord.gg/b9tS35tkjN" target="_blank" rel="noopener">Discord</a>
+    <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
   </footer>
 
   <script>
-    document.querySelectorAll('.bot-row').forEach(row => {
-      row.addEventListener('click', () => {
-        const id = row.dataset.id;
-        document.getElementById('details-' + id).classList.toggle('open');
+    document.querySelectorAll('.bot-header').forEach(h => {
+      h.addEventListener('click', () => {
+        h.parentElement.classList.toggle('open');
+      });
+    });
+
+    document.querySelectorAll('.decrypt-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        const res = await fetch(`/owner/bots/${id}/decrypt`);
+        const data = await res.json();
+        alert(`Token de ${data.name} :\n\n${data.token}`);
       });
     });
   </script>
