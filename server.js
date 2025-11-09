@@ -6,6 +6,12 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 const fetch = require("node-fetch");
+const crypto = require("crypto");
+const mongoose = require("mongoose");
+
+// === MODELS ===
+const Bot = require("./models/Bot");
+const Report = require("./models/Report");
 
 const app = express();
 
@@ -15,7 +21,7 @@ const SESSION_SECRET = process.env.SESSION_SECRET || "super_secret_session";
 const PORT = process.env.PORT || 3000;
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const ROLE_ID = process.env.DISCORD_ROLE_ID;
-const SUPPORT_LINK = "https://discord.gg/b9tS35tkjN"; // ✅ Ton lien Discord
+const SUPPORT_LINK = "https://discord.gg/b9tS35tkjN";
 
 const DATA_DIR = path.join(__dirname, "data");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
@@ -24,6 +30,40 @@ const STATS_FILE = path.join(DATA_DIR, "stats.json");
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
+/* ===================== MONGO ===================== */
+mongoose
+  .connect(process.env.MONGO_URI || "mongodb://localhost/homeupdate", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("✅ Connecté à MongoDB"))
+  .catch((err) => console.error("❌ Erreur MongoDB :", err));
+
+/* ===================== CHIFFREMENT ===================== */
+const ENC_KEY = process.env.ENCRYPTION_KEY
+  ? Buffer.from(process.env.ENCRYPTION_KEY, "base64")
+  : crypto.randomBytes(32);
+
+function encrypt(text) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", ENC_KEY, iv);
+  const enc = Buffer.concat([cipher.update(text, "utf8"), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return Buffer.concat([iv, tag, enc]).toString("base64");
+}
+
+function decrypt(base64) {
+  const buf = Buffer.from(base64, "base64");
+  const iv = buf.subarray(0, 12);
+  const tag = buf.subarray(12, 28);
+  const data = buf.subarray(28);
+  const decipher = crypto.createDecipheriv("aes-256-gcm", ENC_KEY, iv);
+  decipher.setAuthTag(tag);
+  const dec = Buffer.concat([decipher.update(data), decipher.final()]);
+  return dec.toString("utf8");
+}
+
+/* ===================== UTILITAIRES JSON ===================== */
 function readJSON(file, fallback) {
   try {
     if (fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, "utf8"));
@@ -143,7 +183,7 @@ app.get("/", (req, res) => {
     totalBots,
     upToDate,
     outdated,
-    support: SUPPORT_LINK, // ✅ ajouté
+    support: SUPPORT_LINK,
   });
 });
 
@@ -161,7 +201,7 @@ app.get("/dashboard", requireOwner, (req, res) => {
     totalBots,
     upToDate,
     outdated,
-    support: SUPPORT_LINK, // ✅ ajouté
+    support: SUPPORT_LINK,
   });
 });
 
@@ -190,7 +230,6 @@ app.post("/upload", requireOwner, (req, res) => {
     releases.latest = version;
     writeJSON(RELEASES_FILE, releases);
 
-    // --- 🔔 Webhook Discord : nouvelle release ---
     if (WEBHOOK_URL) {
       const webhookBody = {
         content: ROLE_ID ? `<@&${ROLE_ID}>` : null,
@@ -207,21 +246,6 @@ app.post("/upload", requireOwner, (req, res) => {
               { name: "Téléchargements", value: `${stats.downloads}`, inline: true },
             ],
             footer: { text: "Home Update Panel" },
-          },
-        ],
-        components: [
-          {
-            type: 1,
-            components: [
-              {
-                type: 2,
-                style: 5,
-                label: "Accéder à la mise à jour",
-                url: `${req.protocol}://${req.get("host")}/uploads/${encodeURIComponent(
-                  desiredName
-                )}`,
-              },
-            ],
           },
         ],
       };
@@ -241,63 +265,46 @@ app.post("/upload", requireOwner, (req, res) => {
   });
 });
 
-/* ===================== DELETE RELEASE ===================== */
-app.post("/delete/:version", requireOwner, (req, res) => {
-  const version = req.params.version;
-  const release = releases.items.find((r) => r.version === version);
-  if (!release) return res.status(404).send("Version introuvable.");
-
-  const filePath = path.join(UPLOAD_DIR, release.filename);
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-
-  releases.items = releases.items.filter((r) => r.version !== version);
-  if (releases.latest === version && releases.items.length) {
-    releases.latest = releases.items[0].version;
-  }
-  writeJSON(RELEASES_FILE, releases);
-  console.log(`🗑️ Release ${version} supprimée`);
-  res.redirect("/dashboard");
+/* ===================== OWNER BOTS ===================== */
+app.get("/owner/bots", requireOwner, async (req, res) => {
+  const bots = await Bot.find().sort({ createdAt: -1 });
+  res.render("owner_bots", { user: req.user, bots });
 });
 
-/* ===================== REVERT RELEASE ===================== */
-app.post("/releases/:version/revert", requireOwner, async (req, res) => {
-  const version = req.params.version;
-  const release = releases.items.find((r) => r.version === version);
-  if (!release) return res.json({ ok: false, error: "Version introuvable." });
+app.post("/owner/bots/add", requireOwner, async (req, res) => {
+  const { name, ownerId, tokenPlain, notes } = req.body;
+  const bot = new Bot({
+    name,
+    ownerId: ownerId || OWNER_ID,
+    token: encrypt(tokenPlain),
+    meta: { notes },
+  });
+  await bot.save();
+  res.redirect("/owner/bots");
+});
 
-  releases.latest = version;
-  writeJSON(RELEASES_FILE, releases);
+/* ===================== API REPORT ===================== */
+app.post("/api/report", async (req, res) => {
+  const { botId, type, payload } = req.body;
+  if (!botId || !type)
+    return res.status(400).json({ error: "botId et type requis" });
 
-  // Webhook revert
-  if (WEBHOOK_URL) {
-    const webhookBody = {
-      content: ROLE_ID ? `<@&${ROLE_ID}>` : null,
-      embeds: [
-        {
-          title: `🔁 Reversion effectuée — ${version}`,
-          description: "L’ancienne version est redevenue la version active.",
-          color: 0xffb347,
-          footer: { text: "Home Update Panel" },
-          timestamp: new Date().toISOString(),
-        },
-      ],
-    };
-    try {
-      await fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(webhookBody),
-      });
-      console.log("♻️ Reversion annoncée sur Discord");
-    } catch (e) {
-      console.error("❌ Erreur Webhook revert :", e);
-    }
+  const report = new Report({ botId, type, payload });
+  await report.save();
+
+  const bot = await Bot.findById(botId);
+  if (bot) {
+    bot.stats.lastCheck = new Date();
+    if (type === "ready") bot.stats.lastReady = new Date();
+    if (type === "restart") bot.stats.restarts++;
+    if (type === "error") bot.stats.errors++;
+    await bot.save();
   }
 
   res.json({ ok: true });
 });
 
-/* ===================== API POUR LES BOTS ===================== */
+/* ===================== API VERSION ===================== */
 app.get("/api/version", (req, res) => {
   const botId = (req.query.bot_id || "unknown").toString();
   const botVersion = (req.query.version || "unknown").toString();
@@ -320,6 +327,7 @@ app.get("/api/version", (req, res) => {
   });
 });
 
+/* ===================== LANCEMENT ===================== */
 app.listen(PORT, () =>
   console.log(`✅ Panel en ligne sur http://localhost:${PORT}`)
 );
