@@ -31,11 +31,11 @@ fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 /* ===================== MONGO ===================== */
 mongoose
-  .connect(process.env.MONGO_URI) // ex: mongodb+srv://user:pass@cluster/dbname
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ Connecté à MongoDB"))
   .catch((err) => console.error("❌ Erreur MongoDB :", err));
 
-/* ===================== CHIFFREMENT (tokens bots) ===================== */
+/* ===================== CHIFFREMENT ===================== */
 const ENC_KEY = process.env.ENCRYPTION_KEY
   ? Buffer.from(process.env.ENCRYPTION_KEY, "base64")
   : crypto.randomBytes(32);
@@ -133,12 +133,7 @@ function formatDate(iso) {
 }
 async function getStatsDoc() {
   let s = await Stat.findOne();
-  if (!s) {
-    s = await Stat.create({
-      downloads: 0,
-      bots: {},
-    });
-  }
+  if (!s) s = await Stat.create({ downloads: 0, bots: {} });
   return s;
 }
 
@@ -149,7 +144,12 @@ app.get(
   passport.authenticate("discord", { failureRedirect: "/forbidden" }),
   (req, res) => res.redirect("/dashboard")
 );
-app.get("/logout", (req, res) => req.logout(() => res.redirect("/")));
+app.get("/logout", (req, res, next) => {
+  req.logout(function (err) {
+    if (err) return next(err);
+    res.redirect("/");
+  });
+});
 app.get("/forbidden", (req, res) =>
   res.status(403).render("forbidden", { user: req.user })
 );
@@ -159,23 +159,18 @@ app.get("/", async (req, res) => {
   const stats = await getStatsDoc();
   const latest = await Release.findOne().sort({ createdAt: -1 });
   const version = latest?.version || "v1.0";
+  const bots = Object.values(stats.bots || {}).filter(Boolean);
+
   res.render("index", {
     user: req.user,
     version,
     last: latest || null,
     date: latest ? formatDate(latest.createdAt) : "–",
     downloads: stats.downloads || 0,
-    totalBots: Object.keys(stats.bots || {}).length,
-    upToDate: Object.values(stats.bots || {}).filter(
-      (b) => b.botVersion === version
-    ).length,
+    totalBots: bots.length,
+    upToDate: bots.filter((b) => b.botVersion === version).length,
     outdated:
-      Math.max(
-        0,
-        Object.keys(stats.bots || {}).length -
-          Object.values(stats.bots || {}).filter((b) => b.botVersion === version)
-            .length
-      ) || 0,
+      Math.max(0, bots.length - bots.filter((b) => b.botVersion === version).length) || 0,
     support: SUPPORT_LINK,
   });
 });
@@ -185,23 +180,17 @@ app.get("/dashboard", requireOwner, async (req, res) => {
   const stats = await getStatsDoc();
   const releases = await Release.find().sort({ createdAt: -1 });
   const latest = releases[0]?.version || "v1.0";
+  const bots = Object.values(stats.bots || {}).filter(Boolean);
 
   res.render("dashboard", {
     user: req.user,
     latest,
     releases,
     stats,
-    totalBots: Object.keys(stats.bots || {}).length,
-    upToDate: Object.values(stats.bots || {}).filter(
-      (b) => b.botVersion === latest
-    ).length,
+    totalBots: bots.length,
+    upToDate: bots.filter((b) => b.botVersion === latest).length,
     outdated:
-      Math.max(
-        0,
-        Object.keys(stats.bots || {}).length -
-          Object.values(stats.bots || {}).filter((b) => b.botVersion === latest)
-            .length
-      ) || 0,
+      Math.max(0, bots.length - bots.filter((b) => b.botVersion === latest).length) || 0,
     support: SUPPORT_LINK,
   });
 });
@@ -218,25 +207,17 @@ app.post("/upload", requireOwner, (req, res) => {
     if (!req.file) return res.status(400).send("Aucun fichier ZIP reçu.");
 
     const version = /^v/i.test(rawVersion) ? rawVersion : "v" + rawVersion;
-
-    // Renommage fichier pour cohérence
     const desiredName = `bot-${version}.zip`;
     const currentPath = path.join(UPLOAD_DIR, req.file.filename);
     const targetPath = path.join(UPLOAD_DIR, desiredName);
     if (req.file.filename !== desiredName) fs.renameSync(currentPath, targetPath);
 
-    // Persistance Mongo (upsert par version)
     await Release.findOneAndUpdate(
       { version },
-      {
-        version,
-        filename: desiredName,
-        notes,
-      },
+      { version, filename: desiredName, notes },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    // Webhook Discord (optionnel)
     if (WEBHOOK_URL) {
       try {
         const stats = await getStatsDoc();
@@ -245,30 +226,22 @@ app.post("/upload", requireOwner, (req, res) => {
           embeds: [
             {
               title: `🆕 Nouvelle version — ${version}`,
-              description: notes?.length
-                ? notes
-                : "Aucune note de version n’a été fournie.",
+              description:
+                notes?.length ? notes : "Aucune note de version n’a été fournie.",
               color: 0x6c8cff,
               fields: [
-                { name: "Date", value: formatDate(new Date().toISOString()), inline: true },
-                { name: "Téléchargements", value: `${stats.downloads || 0}`, inline: true },
-              ],
-              footer: { text: "Home Update Panel" },
-            },
-          ],
-          components: [
-            {
-              type: 1,
-              components: [
                 {
-                  type: 2,
-                  style: 5,
-                  label: "Accéder à la mise à jour",
-                  url: `${req.protocol}://${req.get("host")}/uploads/${encodeURIComponent(
-                    desiredName
-                  )}`,
+                  name: "Date",
+                  value: formatDate(new Date().toISOString()),
+                  inline: true,
+                },
+                {
+                  name: "Téléchargements",
+                  value: `${stats.downloads || 0}`,
+                  inline: true,
                 },
               ],
+              footer: { text: "Home Update Panel" },
             },
           ],
         };
@@ -285,59 +258,6 @@ app.post("/upload", requireOwner, (req, res) => {
 
     res.redirect("/dashboard");
   });
-});
-
-/* ===================== DELETE RELEASE ===================== */
-app.post("/delete/:version", requireOwner, async (req, res) => {
-  const { version } = req.params;
-  const rel = await Release.findOne({ version });
-  if (!rel) return res.status(404).send("Version introuvable.");
-
-  const filePath = path.join(UPLOAD_DIR, rel.filename);
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-
-  await Release.deleteOne({ version });
-  console.log(`🗑️ Release ${version} supprimée`);
-  res.redirect("/dashboard");
-});
-
-/* ===================== REVERT RELEASE ===================== */
-app.post("/releases/:version/revert", requireOwner, async (req, res) => {
-  const { version } = req.params;
-  const rel = await Release.findOne({ version });
-  if (!rel) return res.json({ ok: false, error: "Version introuvable." });
-
-  // Rien à changer en DB pour “latest” (on lit toujours la + récente),
-  // mais si tu veux “pinner” une version comme latest, ajoute un champ isPinned.
-  // Ici, on duplique le comportement en forçant la date pour la faire remonter :
-  await Release.updateOne({ _id: rel._id }, { createdAt: new Date() });
-
-  if (WEBHOOK_URL) {
-    try {
-      const webhookBody = {
-        content: ROLE_ID ? `<@&${ROLE_ID}>` : null,
-        embeds: [
-          {
-            title: `🔁 Reversion effectuée — ${version}`,
-            description: "L’ancienne version est redevenue la version active.",
-            color: 0xffb347,
-            footer: { text: "Home Update Panel" },
-            timestamp: new Date().toISOString(),
-          },
-        ],
-      };
-      await fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(webhookBody),
-      });
-      console.log("♻️ Reversion annoncée sur Discord");
-    } catch (e) {
-      console.error("❌ Erreur Webhook revert :", e);
-    }
-  }
-
-  res.json({ ok: true });
 });
 
 /* ===================== OWNER : BOTS ===================== */
@@ -372,13 +292,12 @@ app.get("/owner/bots/:id/decrypt", requireOwner, async (req, res) => {
   return res.json({ token: decrypt(b.token) });
 });
 
-/* ===================== API : REPORTS DES BOTS ===================== */
+/* ===================== API : REPORTS ===================== */
 app.post("/api/report", async (req, res) => {
   const { botId, type, payload } = req.body;
   if (!botId || !type) return res.status(400).json({ error: "botId et type requis" });
 
   await Report.create({ botId, type, payload });
-
   const bot = await Bot.findById(botId);
   if (bot) {
     const stats = bot.stats || {};
@@ -393,12 +312,12 @@ app.post("/api/report", async (req, res) => {
   res.json({ ok: true });
 });
 
-/* ===================== API : VERSION POUR LES BOTS ===================== */
+/* ===================== API : VERSION ===================== */
 app.get("/api/version", async (req, res) => {
   const botId = (req.query.bot_id || "unknown").toString();
   const botVersion = (req.query.version || "unknown").toString();
-
   const stats = await getStatsDoc();
+
   stats.downloads = (stats.downloads || 0) + 1;
   stats.bots = stats.bots || {};
   stats.bots[botId] = { botVersion, lastCheck: new Date().toISOString() };
