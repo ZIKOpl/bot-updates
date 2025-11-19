@@ -18,9 +18,7 @@ const Report = require("./models/Report");
 const app = express();
 
 /* ===================== CONFIG ===================== */
-const OWNER_IDS = process.env.OWNER_ID
-    ? process.env.OWNER_ID.split(",")
-    : ["1398750844459024454", "924068219025784842"];
+const OWNER_ID = process.env.OWNER_ID || "1398750844459024454";
 const SESSION_SECRET = process.env.SESSION_SECRET || "super_secret_session";
 const PORT = process.env.PORT || 3000;
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
@@ -96,7 +94,7 @@ passport.use(
 );
 
 function isOwner(req) {
-  return req.user && req.user.id === OWNER_ID;
+  return req.user && OWNER_IDS.includes(req.user.id);
 }
 function requireOwner(req, res, next) {
   if (isOwner(req)) return next();
