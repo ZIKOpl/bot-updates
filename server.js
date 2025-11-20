@@ -14,10 +14,10 @@ const Release = require("./models/Release");
 const Stat = require("./models/Stat");
 const Bot = require("./models/Bot");
 const Report = require("./models/Report");
+const Trash = require("./models/Trash"); // 🔄 Corbeille
 
 const app = express();
 
-/* ===================== CONFIG ===================== */
 /* ===================== CONFIG ===================== */
 const OWNER_IDS = process.env.OWNER_ID
   ? process.env.OWNER_ID.split(",")
@@ -176,7 +176,10 @@ app.get("/", async (req, res) => {
     totalBots: bots.length,
     upToDate: bots.filter((b) => b.botVersion === version).length,
     outdated:
-      Math.max(0, bots.length - bots.filter((b) => b.botVersion === version).length) || 0,
+      Math.max(
+        0,
+        bots.length - bots.filter((b) => b.botVersion === version).length
+      ) || 0,
     support: SUPPORT_LINK,
   });
 });
@@ -196,7 +199,10 @@ app.get("/dashboard", requireOwner, async (req, res) => {
     totalBots: bots.length,
     upToDate: bots.filter((b) => b.botVersion === latest).length,
     outdated:
-      Math.max(0, bots.length - bots.filter((b) => b.botVersion === latest).length) || 0,
+      Math.max(
+        0,
+        bots.length - bots.filter((b) => b.botVersion === latest).length
+      ) || 0,
     support: SUPPORT_LINK,
   });
 });
@@ -266,10 +272,128 @@ app.post("/upload", requireOwner, (req, res) => {
   });
 });
 
+/* ===================== DOWNLOAD RELEASES ===================== */
+app.get("/download/latest", requireOwner, async (req, res) => {
+  const r = await Release.findOne().sort({ createdAt: -1 });
+  if (!r) return res.status(404).send("Aucune version disponible.");
+
+  const file = path.join(UPLOAD_DIR, r.filename);
+  if (!fs.existsSync(file)) {
+    return res.status(404).send("Fichier introuvable sur le serveur.");
+  }
+
+  res.download(file, r.filename);
+});
+
+app.get("/download/:version", requireOwner, async (req, res) => {
+  const { version } = req.params;
+  const r = await Release.findOne({ version });
+  if (!r) return res.status(404).send("Version introuvable");
+
+  const file = path.join(UPLOAD_DIR, r.filename);
+  if (!fs.existsSync(file)) {
+    return res.status(404).send("Fichier introuvable sur le serveur.");
+  }
+
+  res.download(file, r.filename);
+});
+
+/* ===================== CORBEILLE / DELETE / REVERT ===================== */
+
+// Suppression logique : envoi dans Trash, mais on ne supprime pas le ZIP
+app.post("/delete/:version", requireOwner, async (req, res) => {
+  const { version } = req.params;
+
+  const release = await Release.findOne({ version });
+  if (!release) return res.status(404).send("Version introuvable");
+
+  await Trash.create({
+    version: release.version,
+    filename: release.filename,
+    notes: release.notes || "",
+  });
+
+  await Release.deleteOne({ version });
+
+  console.log(`🗑️ Version envoyée à la corbeille : ${version}`);
+  res.redirect("/dashboard");
+});
+
+// Revenir sur une version : on change juste son createdAt pour la repasser en "dernière"
+app.post("/revert/:version", requireOwner, async (req, res) => {
+  const { version } = req.params;
+
+  const r = await Release.findOne({ version });
+  if (!r) return res.status(404).send("Version introuvable");
+
+  r.createdAt = new Date();
+  await r.save();
+
+  console.log(`🔁 Version revert : ${version}`);
+  res.redirect("/dashboard");
+});
+
+// Page corbeille
+app.get("/trash", requireOwner, async (req, res) => {
+  const items = await Trash.find().sort({ deletedAt: -1 }).lean();
+  res.render("trash", {
+    user: req.user,
+    items,
+    support: SUPPORT_LINK,
+  });
+});
+
+// Restaurer une release depuis la corbeille
+app.post("/trash/restore/:id", requireOwner, async (req, res) => {
+  const { id } = req.params;
+  const item = await Trash.findById(id);
+  if (!item) return res.status(404).send("Élément introuvable");
+
+  // Si une release avec cette version existe déjà, on la remplace
+  await Release.findOneAndUpdate(
+    { version: item.version },
+    {
+      version: item.version,
+      filename: item.filename,
+      notes: item.notes || "",
+      createdAt: new Date(),
+    },
+    { upsert: true }
+  );
+
+  await Trash.deleteOne({ _id: id });
+
+  console.log(`♻️ Version restaurée depuis la corbeille : ${item.version}`);
+  res.redirect("/trash");
+});
+
+// Suppression définitive + suppression du ZIP si présent
+app.post("/trash/delete/:id", requireOwner, async (req, res) => {
+  const { id } = req.params;
+  const item = await Trash.findById(id);
+  if (!item) return res.status(404).send("Élément introuvable");
+
+  const filePath = path.join(UPLOAD_DIR, item.filename);
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+    console.log(`🗑️ Fichier supprimé définitivement : ${item.filename}`);
+  }
+
+  await Trash.deleteOne({ _id: id });
+
+  res.redirect("/trash");
+});
+
 /* ===================== OWNER : GESTION DES BOTS ===================== */
 app.get("/owner/bots", requireOwner, async (req, res) => {
   const bots = await Bot.find().sort({ createdAt: -1 }).lean();
-  res.render("owner_bots", { user: req.user, bots, support: SUPPORT_LINK });
+  const latest = await Release.findOne().sort({ createdAt: -1 });
+  res.render("owner_bots", {
+    user: req.user,
+    bots,
+    latestVersion: latest?.version || "v1.0",
+    support: SUPPORT_LINK,
+  });
 });
 
 app.post("/owner/bots/add", requireOwner, async (req, res) => {
@@ -278,7 +402,7 @@ app.post("/owner/bots/add", requireOwner, async (req, res) => {
 
   await Bot.create({
     name,
-    ownerId: ownerId || OWNER_ID,
+    ownerId: ownerId || req.user.id, // 🔧 FIX ici
     token: encrypt(tokenPlain),
     meta: { notes: notes || "" },
     stats: { restarts: 0, errors: 0 },
@@ -312,7 +436,8 @@ app.get("/owner/bots/:id/decrypt", requireOwner, async (req, res) => {
 /* ===================== API : REPORTS ===================== */
 app.post("/api/report", async (req, res) => {
   const { botId, type, payload } = req.body;
-  if (!botId || !type) return res.status(400).json({ error: "botId et type requis" });
+  if (!botId || !type)
+    return res.status(400).json({ error: "botId et type requis" });
 
   await Report.create({ botId, type, payload });
   const bot = await Bot.findById(botId);
@@ -343,7 +468,25 @@ app.get("/api/version", async (req, res) => {
   const latest = await Release.findOne().sort({ createdAt: -1 });
   const url =
     latest &&
-    `${req.protocol}://${req.get("host")}/uploads/${encodeURIComponent(latest.filename)}`;
+    `${req.protocol}://${req.get("host")}/uploads/${encodeURIComponent(
+      latest.filename
+    )}`;
+
+  // 🔧 Met à jour aussi les stats du Bot s'il existe (pour le dashboard "Mes bots")
+  if (botId && botId !== "unknown") {
+    try {
+      const b = await Bot.findById(botId);
+      if (b) {
+        const s = b.stats || {};
+        s.botVersion = botVersion;
+        s.lastCheck = new Date();
+        b.stats = s;
+        await b.save();
+      }
+    } catch (e) {
+      console.warn("Bot introuvable pour mise à jour de version :", e.message);
+    }
+  }
 
   res.json({
     version: latest?.version || "v1.0",

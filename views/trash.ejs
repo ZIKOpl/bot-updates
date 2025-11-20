@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Corbeille • HOME UPDATE</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="brand">
+      <img src="/logo.png" alt="HOME UPDATE" class="nav-logo" />
+      <span class="brand-text">HOME UPDATE</span>
+    </div>
+    <div class="nav-right">
+      <a class="btn" href="/dashboard">Dashboard</a>
+      <a class="btn" href="/owner/bots">Mes Bots</a>
+      <a class="btn" href="/">Accueil</a>
+      <a class="btn danger" href="/logout">Déconnexion</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <header class="hero" style="text-align:left;">
+      <h1>🗑️ Corbeille des releases</h1>
+      <p>Versions supprimées. Tu peux les restaurer ou les supprimer définitivement.</p>
+    </header>
+
+    <section class="card card-tilt">
+      <h2>Releases en corbeille</h2>
+      <% if (!items || items.length === 0) { %>
+        <p class="muted">Aucune release en corbeille.</p>
+      <% } else { %>
+        <ul class="release-list2">
+          <% items.forEach(item => { %>
+            <li class="release-row" data-version="<%= item.version %>">
+              <div class="release-left">
+                <div class="release-dot"><%= item.version %></div>
+                <div class="release-meta">
+                  <div class="release-title"><%= item.version %></div>
+                  <div class="muted">Supprimée le <%= new Date(item.deletedAt).toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}) %></div>
+                  <% if (item.notes) { %>
+                    <div class="muted" style="margin-top:6px"><%= item.notes %></div>
+                  <% } %>
+                </div>
+              </div>
+              <div class="release-actions">
+                <form action="/trash/restore/<%= item._id %>" method="post" style="display:inline-block; margin-right:6px;">
+                  <button type="submit" class="btn small">♻ Restaurer</button>
+                </form>
+                <form action="/trash/delete/<%= item._id %>" method="post" style="display:inline-block;">
+                  <button type="submit" class="btn danger small" onclick="return confirm('Supprimer définitivement cette release et son fichier ?');">
+                    🗑️ Supprimer définitivement
+                  </button>
+                </form>
+              </div>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
+    </section>
+  </main>
+
+  <footer class="footer">
+    © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
+    <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
+  </footer>
+</body>
+</html>

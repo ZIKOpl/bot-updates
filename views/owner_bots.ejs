@@ -6,19 +6,84 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/style.css" />
   <style>
-    .bot-card {
-      border: 1px solid #444;
-      background: #1b1b1b;
-      border-radius: 12px;
-      padding: 12px 16px;
-      margin-bottom: 10px;
-      transition: 0.2s;
+    .bots-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-bottom: 40px;
+      justify-content: center;
     }
-    .bot-card:hover { background: #222; }
-    .bot-details { display: none; padding: 8px 0 0 0; border-top: 1px solid #333; margin-top: 6px; }
-    .bot-card.open .bot-details { display: block; }
-    .bot-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .bot-actions button { margin-left: 6px; }
+    .bot-card {
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 18px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      transition: 0.2s ease;
+      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+    }
+    .bot-card.open {
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+    }
+    .bot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      gap: 12px;
+    }
+    .bot-title {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .bot-name {
+      font-weight: 700;
+      font-size: 0.98rem;
+    }
+    .bot-sub {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .bot-actions button,
+    .bot-actions .btn {
+      margin-left: 6px;
+    }
+    .bot-details {
+      display: none;
+      padding-top: 8px;
+      margin-top: 8px;
+      border-top: 1px solid rgba(148, 163, 184, 0.3);
+      font-size: 0.9rem;
+    }
+    .bot-card.open .bot-details {
+      display: block;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border: 1px solid transparent;
+      gap: 4px;
+    }
+    .tag-success {
+      background: rgba(34, 197, 94, 0.06);
+      color: #15803d;
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+    .tag-warn {
+      background: rgba(234, 179, 8, 0.08);
+      color: #92400e;
+      border-color: rgba(234, 179, 8, 0.4);
+    }
+    .tag-muted {
+      background: rgba(148, 163, 184, 0.15);
+      color: #4b5563;
+      border-color: rgba(148, 163, 184, 0.5);
+    }
   </style>
 </head>
 <body>
@@ -30,44 +95,88 @@
     <div class="nav-right">
       <a class="btn" href="/dashboard">Dashboard</a>
       <a class="btn" href="/">Accueil</a>
+      <a class="btn" href="/trash">Corbeille</a>
       <a class="btn danger" href="/logout">Déconnexion</a>
     </div>
   </nav>
 
   <main class="container">
-    <header class="hero">
-      <h1>🤖 Gestion des Bots</h1>
-      <p>Liste complète des bots enregistrés.</p>
+    <header class="hero" style="text-align:left;">
+      <h1>🤖 Mes bots</h1>
+      <p>Enregistre les bots, regarde leurs stats et leur état de mise à jour.</p>
+      <div style="margin-top:10px;">
+        <span class="version-pill">Dernière version disponible : <strong><%= latestVersion %></strong></span>
+      </div>
     </header>
 
-    <section>
-      <% if (bots.length === 0) { %>
-        <p class="muted">Aucun bot enregistré.</p>
-      <% } else { %>
-        <% bots.forEach(bot => { %>
-          <div class="bot-card" data-id="<%= bot._id %>">
-            <div class="bot-header">
-              <strong><%= bot.name %></strong>
-              <div class="bot-actions">
-                <button class="btn small decrypt-btn" data-id="<%= bot._id %>">🔐 Voir Token</button>
-                <form action="/owner/bots/<%= bot._id %>/delete" method="POST" style="display:inline;">
-                  <button type="submit" class="btn danger small">🗑️ Supprimer</button>
-                </form>
+    <section class="dashboard-flex">
+      <!-- Formulaire d'ajout de bot -->
+      <div class="card upload-card card-tilt">
+        <h2>➕ Ajouter un bot</h2>
+        <form action="/owner/bots/add" method="POST">
+          <input class="input" type="text" name="name" placeholder="Nom du bot (ex : Smiddy #1)" required />
+          <input class="input" type="text" name="ownerId" placeholder="ID du propriétaire (Discord)" />
+          <input class="input" type="text" name="tokenPlain" placeholder="Token du bot" required />
+          <textarea class="input textarea" name="notes" rows="3" placeholder="Notes (serveur, utilisation, etc.)"></textarea>
+          <button type="submit" class="btn primary">Enregistrer le bot</button>
+        </form>
+      </div>
+
+      <!-- Liste des bots -->
+      <div class="card timeline-card card-tilt">
+        <h2>📋 Bots enregistrés</h2>
+        <% if (bots.length === 0) { %>
+          <p class="muted">Aucun bot enregistré.</p>
+        <% } else { %>
+          <% bots.forEach(bot => { 
+              const stats = bot.stats || {};
+              const isUpToDate = stats.botVersion === latestVersion;
+          %>
+            <div class="bot-card" data-id="<%= bot._id %>">
+              <div class="bot-header">
+                <div class="bot-title">
+                  <span class="bot-name"><%= bot.name %></span>
+                  <span class="bot-sub">
+                    Propriétaire : <%= bot.ownerId || "Inconnu" %>
+                  </span>
+                  <span class="bot-sub">
+                    Version bot : <%= stats.botVersion || "Inconnue" %>
+                  </span>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+                  <div>
+                    <% if (stats.botVersion) { %>
+                      <% if (isUpToDate) { %>
+                        <span class="tag tag-success">À jour</span>
+                      <% } else { %>
+                        <span class="tag tag-warn">Obsolète</span>
+                      <% } %>
+                    <% } else { %>
+                      <span class="tag tag-muted">Aucune info version</span>
+                    <% } %>
+                  </div>
+                  <div class="bot-actions">
+                    <button class="btn small decrypt-btn" data-id="<%= bot._id %>">🔐 Voir Token</button>
+                    <form action="/owner/bots/<%= bot._id %>/delete" method="POST" style="display:inline;">
+                      <button type="submit" class="btn danger small">🗑️ Supprimer</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              <div class="bot-details">
+                <p><strong>Ajouté le :</strong> <%= new Date(bot.createdAt).toLocaleString("fr-FR") %></p>
+                <p><strong>Dernier READY :</strong> <%= stats.lastReady ? new Date(stats.lastReady).toLocaleString("fr-FR") : "Jamais" %></p>
+                <p><strong>Dernier check :</strong> <%= stats.lastCheck ? new Date(stats.lastCheck).toLocaleString("fr-FR") : "Jamais" %></p>
+                <p><strong>Redémarrages :</strong> <%= stats.restarts || 0 %></p>
+                <p><strong>Erreurs :</strong> <%= stats.errors || 0 %></p>
+                <% if (bot.meta && bot.meta.notes) { %>
+                  <p><strong>Notes :</strong> <%= bot.meta.notes %></p>
+                <% } %>
               </div>
             </div>
-            <div class="bot-details">
-              <p><strong>Propriétaire :</strong> <%= bot.ownerId %></p>
-              <p><strong>Ajouté le :</strong> <%= new Date(bot.createdAt).toLocaleString("fr-FR") %></p>
-              <p><strong>Dernier READY :</strong> <%= bot.stats?.lastReady ? new Date(bot.stats.lastReady).toLocaleString("fr-FR") : "Jamais" %></p>
-              <p><strong>Redémarrages :</strong> <%= bot.stats?.restarts || 0 %></p>
-              <p><strong>Erreurs :</strong> <%= bot.stats?.errors || 0 %></p>
-              <% if (bot.meta?.notes) { %>
-                <p><strong>Notes :</strong> <%= bot.meta.notes %></p>
-              <% } %>
-            </div>
-          </div>
-        <% }) %>
-      <% } %>
+          <% }) %>
+        <% } %>
+      </div>
     </section>
   </main>
 
@@ -78,7 +187,9 @@
 
   <script>
     document.querySelectorAll('.bot-header').forEach(h => {
-      h.addEventListener('click', () => {
+      h.addEventListener('click', (e) => {
+        // éviter de déclencher quand on clique sur les boutons
+        if (e.target.closest('button') || e.target.closest('form')) return;
         h.parentElement.classList.toggle('open');
       });
     });
@@ -87,9 +198,17 @@
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const id = btn.dataset.id;
-        const res = await fetch(`/owner/bots/${id}/decrypt`);
-        const data = await res.json();
-        alert(`Token de ${data.name} :\n\n${data.token}`);
+        try {
+          const res = await fetch(`/owner/bots/${id}/decrypt`);
+          if (!res.ok) {
+            alert("Erreur lors du déchiffrement du token.");
+            return;
+          }
+          const data = await res.json();
+          alert(`Token de ${data.name} :\n\n${data.token}`);
+        } catch (err) {
+          alert("Erreur réseau lors de la récupération du token.");
+        }
       });
     });
   </script>

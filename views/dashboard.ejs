@@ -16,6 +16,7 @@
     <div class="nav-right">
       <a class="btn" href="/">Accueil</a>
       <a class="btn" href="/owner/bots">Mes Bots</a>
+      <a class="btn" href="/trash">Corbeille</a>
       <a class="btn danger" href="/logout">Déconnexion</a>
     </div>
   </nav>
@@ -24,6 +25,10 @@
     <header class="hero">
       <h1>Panneau de gestion</h1>
       <p>Glisse la nouvelle version, ajoute des notes et publie.</p>
+      <div style="margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <span class="version-pill">Version active : <strong><%= latest %></strong></span>
+        <a class="btn primary" href="/download/latest">⬇ Télécharger la dernière version</a>
+      </div>
     </header>
 
     <section class="dashboard-flex">
@@ -63,9 +68,10 @@
                 <div class="release-actions">
                   <button class="icon-btn more-btn" aria-label="menu" data-version="<%= r.version %>">⋮</button>
                   <div class="menu hidden" id="menu-<%= r.version %>">
+                    <a class="menu-item" href="/download/<%= r.version %>">⬇ Télécharger cette version</a>
                     <button class="menu-item revert" data-version="<%= r.version %>">🔁 Revenir sur cette version</button>
                     <form action="/delete/<%= r.version %>" method="post" style="margin:0;">
-                      <button type="submit" class="menu-item danger">🗑️ Supprimer</button>
+                      <button type="submit" class="menu-item danger">🗑️ Envoyer à la corbeille</button>
                     </form>
                   </div>
                 </div>
@@ -89,20 +95,22 @@
     const text = document.getElementById('uploadText');
     const form = document.getElementById('uploadForm');
 
-    drop.addEventListener('click', () => input.click());
-    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('hover'); });
-    drop.addEventListener('dragleave', () => drop.classList.remove('hover'));
-    drop.addEventListener('drop', e => {
-      e.preventDefault(); drop.classList.remove('hover');
-      if (e.dataTransfer.files.length) {
-        input.files = e.dataTransfer.files;
-        text.textContent = 'Fichier sélectionné : ' + e.dataTransfer.files[0].name;
-      }
-    });
-    input.addEventListener('change', () => {
-      if (input.files.length) text.textContent = 'Fichier sélectionné : ' + input.files[0].name;
-    });
-    form.addEventListener('submit', () => { text.textContent = 'Upload en cours…'; });
+    if (drop && input && text && form) {
+      drop.addEventListener('click', () => input.click());
+      drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('hover'); });
+      drop.addEventListener('dragleave', () => drop.classList.remove('hover'));
+      drop.addEventListener('drop', e => {
+        e.preventDefault(); drop.classList.remove('hover');
+        if (e.dataTransfer.files.length) {
+          input.files = e.dataTransfer.files;
+          text.textContent = 'Fichier sélectionné : ' + e.dataTransfer.files[0].name;
+        }
+      });
+      input.addEventListener('change', () => {
+        if (input.files.length) text.textContent = 'Fichier sélectionné : ' + input.files[0].name;
+      });
+      form.addEventListener('submit', () => { text.textContent = 'Upload en cours…'; });
+    }
 
     // Menus ⋮
     document.querySelectorAll('.more-btn').forEach(btn => {
@@ -114,8 +122,32 @@
         if (menu) menu.classList.toggle('hidden');
       });
     });
+
     window.addEventListener('click', () => {
       document.querySelectorAll('.menu').forEach(m => m.classList.add('hidden'));
+    });
+
+    // Boutons "Revenir sur cette version"
+    document.querySelectorAll('.revert').forEach(btn => {
+      btn.addEventListener('click', async e => {
+        e.stopPropagation();
+        const v = btn.dataset.version;
+        if (!confirm(`Revenir à la version ${v} ?`)) return;
+
+        try {
+          const res = await fetch(`/revert/${encodeURIComponent(v)}`, {
+            method: 'POST'
+          });
+          if (res.ok) {
+            alert('Version définie comme active ✔');
+            window.location.reload();
+          } else {
+            alert("Erreur lors du revert ❌");
+          }
+        } catch (err) {
+          alert("Erreur réseau lors du revert ❌");
+        }
+      });
     });
   </script>
 </body>
