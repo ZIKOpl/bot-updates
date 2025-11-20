@@ -85,8 +85,9 @@ body {
 
 .brand-text {
   font-weight: 800;
-  font-size: 1rem;
-  letter-spacing: .04em;
+  font-size: 0.9rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
 }
 
 .actions {
@@ -109,8 +110,10 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
   transition:
     background var(--transition),
     border-color var(--transition),
@@ -150,7 +153,7 @@ body {
 
 .btn.small {
   padding: 0.3rem 0.7rem;
-  font-size: 0.78rem;
+  font-size: 0.7rem;
 }
 
 /* ========================= PUBLIC INDEX LAYOUT ========================= */
@@ -167,8 +170,10 @@ body {
 
 .hero h1 {
   margin: 0 0 8px;
-  font-size: 2.4rem;
+  font-size: 2.2rem;
   font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
   background: linear-gradient(120deg, #e5edff, #6c8cff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -177,7 +182,7 @@ body {
 .hero p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.96rem;
+  font-size: 0.9rem;
 }
 
 .version-pill {
@@ -189,7 +194,9 @@ body {
   border-radius: 999px;
   background: rgba(37, 99, 235, 0.18);
   color: #bfcef8;
-  font-size: 0.82rem;
+  font-size: 0.72rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
   border: 1px solid rgba(59, 130, 246, 0.55);
 }
 
@@ -225,18 +232,24 @@ body {
   align-items: center;
   justify-content: center;
   font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
   background: linear-gradient(145deg, #4f46e5, #7c3aed);
   box-shadow: 0 18px 40px rgba(79, 70, 229, 0.9);
 }
 
 .strip-info h3 {
   margin: 0 0 4px;
-  font-size: 0.96rem;
+  font-size: 0.8rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #bfdbfe;
 }
 
 .strip-info .notes {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   color: #cbd5f5;
 }
 
@@ -256,9 +269,9 @@ body {
 
 .metric-title {
   color: var(--text-muted);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.16em;
 }
 
 .metric-value {
@@ -297,8 +310,8 @@ body {
 .tile h2 {
   margin-top: 0;
   margin-bottom: 8px;
-  font-size: 0.98rem;
-  letter-spacing: 0.05em;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #bfdbfe;
 }
@@ -307,7 +320,7 @@ body {
   margin: 10px 0 8px 18px;
   padding: 0;
   color: #e5e7eb;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
 }
 
 .steps li {
@@ -336,6 +349,8 @@ body {
 .stat-label {
   font-size: 0.78rem;
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .12em;
 }
 
 .muted {
@@ -384,8 +399,8 @@ body.dash {
 
 .sidebar-brand span {
   font-weight: 800;
-  font-size: 0.94rem;
-  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #e5edff;
 }
@@ -405,7 +420,9 @@ body.dash {
   border-radius: 10px;
   text-decoration: none;
   color: var(--text-muted);
-  font-size: 0.88rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
   transition: background .16s ease, color .16s ease, transform .1s ease, box-shadow .16s ease;
 }
 
@@ -438,7 +455,9 @@ body.dash {
   color: #fecaca;
   border: 1px solid rgba(248, 113, 113, 0.7);
   background: rgba(127, 29, 29, 0.5);
-  font-size: 0.84rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: .12em;
   transition: background .16s ease, box-shadow .16s ease, transform .1s ease;
 }
 
@@ -461,14 +480,16 @@ body.dash {
 
 .page-header h1 {
   margin: 0 0 4px;
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
 }
 
 .page-header p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.92rem;
+  font-size: 0.86rem;
 }
 
 .top-actions {
@@ -516,8 +537,11 @@ body.dash {
 
 .card h2 {
   margin: 0 0 8px;
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #e5edff;
 }
 
 /* inputs */
@@ -529,7 +553,7 @@ body.dash {
   border: 1px solid rgba(148, 163, 184, 0.7);
   background: rgba(15, 23, 42, 0.9);
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   outline: none;
   margin-bottom: 10px;
   transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
@@ -557,7 +581,9 @@ body.dash {
   padding: 20px;
   margin-bottom: 12px;
   text-align: center;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: .12em;
   background: rgba(15, 23, 42, 0.9);
   color: var(--text-muted);
   cursor: pointer;
@@ -623,14 +649,16 @@ body.dash {
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: 0.7rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
   background: linear-gradient(135deg, #4f46e5, #0ea5e9);
   box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.7),
               0 14px 35px rgba(59, 130, 246, 0.9);
 }
 
 .release-meta {
-  font-size: 0.88rem;
+  font-size: 0.82rem;
 }
 
 .release-title {
@@ -695,7 +723,9 @@ body.dash {
   text-align: left;
   padding: 8px 10px;
   border-radius: 10px;
-  font-size: 0.86rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: .12em;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -751,7 +781,9 @@ body.dash {
 
 .bot-name {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
 .bot-sub {
@@ -764,7 +796,7 @@ body.dash {
   border-top: 1px solid rgba(31, 41, 55, 0.9);
   margin-top: 8px;
   padding-top: 6px;
-  font-size: 0.86rem;
+  font-size: 0.82rem;
 }
 
 .bot-card.open .bot-details {
@@ -785,9 +817,11 @@ body.dash {
   align-items: center;
   padding: 2px 7px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   border: 1px solid transparent;
   gap: 4px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
 }
 
 .tag-success {
@@ -836,7 +870,9 @@ body.dash {
 
 .modal-box h2 {
   margin: 0 0 8px;
-  font-size: 1.05rem;
+  font-size: 0.9rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
 }
 
 .modal-actions {
@@ -858,8 +894,17 @@ body.dash {
   text-align: center;
 }
 
-.forbidden .icon {
-  font-size: 3rem;
+.forbidden h1 {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.forbidden p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
 
 /* ========================= FOOTER ========================= */
@@ -871,12 +916,15 @@ body.dash {
   border-top: 1px solid rgba(148, 163, 184, 0.35);
   background: rgba(15, 23, 42, 0.96);
   color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
 }
 
 .footer a {
   color: #bfdbfe;
   text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 0.7rem;
 }
 
 .footer a:hover {
@@ -915,7 +963,7 @@ body.dash {
   }
 
   .sidebar-nav a {
-    font-size: 0.78rem;
+    font-size: 0.7rem;
     padding: 5px 8px;
   }
 

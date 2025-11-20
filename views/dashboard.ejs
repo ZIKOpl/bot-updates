@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Dashboard • HOME UPDATE</title>
+  <title>DASHBOARD • HOME UPDATE</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/style.css" />
 </head>
@@ -14,50 +14,50 @@
       <span>HOME UPDATE</span>
     </div>
     <nav class="sidebar-nav">
-      <a href="/dashboard" class="active">📦 Releases</a>
-      <a href="/owner/bots">🤖 Mes Bots</a>
-      <a href="/trash">🗑️ Corbeille</a>
-      <a href="/">🏠 Accueil</a>
+      <a href="/dashboard" class="active">RELEASES</a>
+      <a href="/owner/bots">MES BOTS</a>
+      <a href="/trash">CORBEILLE</a>
+      <a href="/">ACCUEIL</a>
     </nav>
     <div class="sidebar-bottom">
-      <a href="/logout" class="danger">🚪 Déconnexion</a>
+      <a href="/logout" class="danger">DÉCONNEXION</a>
     </div>
   </aside>
 
   <!-- CONTENU -->
   <main class="dash-content">
     <header class="page-header">
-      <h1>Releases</h1>
-      <p>Uploader, gérer et restaurer les versions du bot.</p>
+      <h1>RELEASES</h1>
+      <p>UPLOADER, GÉRER ET RESTAURER LES VERSIONS DU BOT.</p>
       <div style="margin-top:10px;">
-        <span class="version-pill">Version active : <strong><%= latest %></strong></span>
+        <span class="version-pill">VERSION ACTIVE : <strong><%= latest %></strong></span>
       </div>
     </header>
 
     <div class="top-actions">
-      <a class="btn primary" href="/download/latest">⬇ Télécharger la dernière version</a>
+      <a class="btn primary" href="/download/latest">TÉLÉCHARGER LA DERNIÈRE VERSION</a>
     </div>
 
     <section class="dashboard-flex">
       <!-- Upload -->
       <div class="card upload-card">
-        <h2>📥 Nouvelle release</h2>
+        <h2>NOUVELLE RELEASE</h2>
         <form id="uploadForm" class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
           <input class="input" type="text" name="version" placeholder="Numéro de version (ex : 2.6)" required />
           <textarea class="input textarea" name="notes" rows="3" placeholder="Notes de version (changements, corrections…)"></textarea>
           <div id="dropZone" class="drop-zone">
-            <span id="uploadText">Glisse ton fichier .zip ici ou clique pour le choisir</span>
+            <span id="uploadText">GLISSE UN FICHIER .ZIP OU CLIQUE POUR LE SÉLECTIONNER</span>
             <input id="fileInput" type="file" name="zip" accept=".zip" hidden />
           </div>
-          <button type="submit" class="btn primary">Uploader</button>
+          <button type="submit" class="btn primary">UPLOADER</button>
         </form>
       </div>
 
       <!-- Liste versions -->
       <div class="card timeline-card">
-        <h2>🕒 Versions précédentes</h2>
+        <h2>HISTORIQUE DES VERSIONS</h2>
         <% if (releases.length === 0) { %>
-          <p class="muted">Aucune release disponible</p>
+          <p class="muted">Aucune release disponible.</p>
         <% } else { %>
           <ul class="release-list2">
             <% releases.forEach(r => { %>
@@ -78,17 +78,17 @@
                   <button class="icon-btn more-btn" aria-label="menu" data-version="<%= r.version %>">⋮</button>
                   <div class="menu hidden" id="menu-<%= r.version %>">
                     <a class="menu-item" href="/download/<%= encodeURIComponent(r.version) %>">
-                      ⬇ Télécharger cette version
+                      TÉLÉCHARGER
                     </a>
                     <form action="/revert/<%= encodeURIComponent(r.version) %>" method="post" style="margin:0;">
                       <button type="submit" class="menu-item">
-                        🔁 Revenir sur cette version
+                        DÉFINIR COMME VERSION ACTIVE
                       </button>
                     </form>
                     <form action="/delete/<%= encodeURIComponent(r.version) %>" method="post" style="margin:0;"
                           onsubmit="return confirm('Envoyer cette release dans la corbeille ?');">
                       <button type="submit" class="menu-item danger">
-                        🗑️ Envoyer à la corbeille
+                        ENVOYER DANS LA CORBEILLE
                       </button>
                     </form>
                   </div>
@@ -102,8 +102,8 @@
   </main>
 
   <footer class="footer">
-    © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
-    <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
+    © <%= new Date().getFullYear() %> — HOME UPDATE PANEL ·
+    <a href="<%= support %>" target="_blank" rel="noopener">DISCORD SUPPORT</a>
   </footer>
 
   <script>
@@ -121,13 +121,13 @@
         e.preventDefault(); drop.classList.remove('hover');
         if (e.dataTransfer.files.length) {
           input.files = e.dataTransfer.files;
-          text.textContent = 'Fichier sélectionné : ' + e.dataTransfer.files[0].name;
+          text.textContent = 'FICHIER SÉLECTIONNÉ : ' + e.dataTransfer.files[0].name;
         }
       });
       input.addEventListener('change', () => {
-        if (input.files.length) text.textContent = 'Fichier sélectionné : ' + input.files[0].name;
+        if (input.files.length) text.textContent = 'FICHIER SÉLECTIONNÉ : ' + input.files[0].name;
       });
-      form.addEventListener('submit', () => { text.textContent = 'Upload en cours…'; });
+      form.addEventListener('submit', () => { text.textContent = 'UPLOAD EN COURS…'; });
     }
 
     // Menus ⋮

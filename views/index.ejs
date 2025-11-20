@@ -14,10 +14,10 @@
     </div>
     <div class="actions">
       <% if (user) { %>
-        <a class="btn" href="/dashboard">Dashboard</a>
-        <a class="btn danger" href="/logout">Déconnexion</a>
+        <a class="btn" href="/dashboard">DASHBOARD</a>
+        <a class="btn danger" href="/logout">DÉCONNEXION</a>
       <% } else { %>
-        <a class="btn primary" href="/login">Connexion Discord</a>
+        <a class="btn primary" href="/login">CONNEXION DISCORD</a>
       <% } %>
     </div>
   </nav>
@@ -25,15 +25,15 @@
   <main class="container">
     <header class="hero" style="text-align:left;">
       <h1>HOME UPDATE</h1>
-      <p>Système automatisé de mise à jour — simple, rapide, efficace.</p>
-      <span class="version-pill">Dernière version : <%= version %></span>
+      <p>SYSTÈME AUTOMATISÉ DE MISE À JOUR POUR TON BOT DISCORD.</p>
+      <span class="version-pill">DERNIÈRE VERSION : <%= version %></span>
     </header>
 
     <section class="release-strip">
       <div class="strip-left">
         <div class="version-badge"><%= version %></div>
         <div class="strip-info">
-          <h3>Dernière release</h3>
+          <h3>DERNIÈRE RELEASE</h3>
           <% if (last) { %>
             <p class="notes"><%= last.notes || "Aucune note fournie." %></p>
           <% } else { %>
@@ -43,11 +43,11 @@
       </div>
       <div class="strip-right">
         <div class="metric">
-          <div class="metric-title">Date</div>
+          <div class="metric-title">DATE</div>
           <div class="metric-value"><%= date %></div>
         </div>
         <div class="metric">
-          <div class="metric-title">Téléchargements</div>
+          <div class="metric-title">TÉLÉCHARGEMENTS</div>
           <div class="metric-value"><%= downloads %></div>
         </div>
       </div>
@@ -55,29 +55,31 @@
 
     <section class="home-tiles">
       <div class="tile">
-        <h2>Comment mettre à jour ton bot</h2>
+        <h2>COMMENT METTRE À JOUR TON BOT</h2>
         <ul class="steps">
-          <li>1. Sur Discord, entre la commande <strong>+update</strong>.</li>
+          <li>1. Sur Discord, envoie la commande <strong>+UPDATE</strong>.</li>
           <li>2. Le bot contacte HOME UPDATE et télécharge la dernière version.</li>
-          <li>3. Les fichiers sont mis à jour et le bot redémarre.</li>
+          <li>3. Les fichiers sont mis à jour et le bot redémarre automatiquement.</li>
         </ul>
-        <p class="muted">Tout se fait automatiquement, sans intervention manuelle sur le serveur.</p>
+        <p class="muted">
+          Aucun accès FTP, aucune intervention manuelle : tout passe par la commande et l’API.
+        </p>
       </div>
 
       <div class="tile">
-        <h2>Statistiques</h2>
+        <h2>STATISTIQUES</h2>
         <div class="stat-grid">
           <div class="stat">
             <div class="stat-kpi"><%= totalBots %></div>
-            <div class="stat-label">Total bots</div>
+            <div class="stat-label">BOTS ENREGISTRÉS</div>
           </div>
           <div class="stat">
             <div class="stat-kpi"><%= upToDate %></div>
-            <div class="stat-label">À jour</div>
+            <div class="stat-label">BOTS À JOUR</div>
           </div>
           <div class="stat">
             <div class="stat-kpi"><%= outdated %></div>
-            <div class="stat-label">Obsolètes</div>
+            <div class="stat-label">BOTS OBSOLÈTES</div>
           </div>
         </div>
       </div>
@@ -85,8 +87,8 @@
   </main>
 
   <footer class="footer">
-    © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
-    <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
+    © <%= new Date().getFullYear() %> — HOME UPDATE PANEL ·
+    <a href="<%= support %>" target="_blank" rel="noopener">DISCORD SUPPORT</a>
   </footer>
 </body>
 </html>

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Gestion des bots • HOME UPDATE</title>
+  <title>GESTION DES BOTS • HOME UPDATE</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/style.css" />
 </head>
@@ -14,34 +14,34 @@
       <span>HOME UPDATE</span>
     </div>
     <nav class="sidebar-nav">
-      <a href="/dashboard">📦 Releases</a>
-      <a href="/owner/bots" class="active">🤖 Mes Bots</a>
-      <a href="/trash">🗑️ Corbeille</a>
-      <a href="/">🏠 Accueil</a>
+      <a href="/dashboard">RELEASES</a>
+      <a href="/owner/bots" class="active">MES BOTS</a>
+      <a href="/trash">CORBEILLE</a>
+      <a href="/">ACCUEIL</a>
     </nav>
     <div class="sidebar-bottom">
-      <a href="/logout" class="danger">🚪 Déconnexion</a>
+      <a href="/logout" class="danger">DÉCONNEXION</a>
     </div>
   </aside>
 
   <main class="dash-content">
     <header class="page-header">
-      <h1>🤖 Gestion des Bots</h1>
-      <p>Liste complète des bots enregistrés utilisant le système de mise à jour.</p>
+      <h1>GESTION DES BOTS</h1>
+      <p>LISTE DES BOTS QUI UTILISENT LE SYSTÈME DE MISE À JOUR.</p>
       <div style="margin-top:10px;">
-        <span class="version-pill">Dernière version disponible : <strong><%= latestVersion %></strong></span>
+        <span class="version-pill">DERNIÈRE VERSION DISPONIBLE : <strong><%= latestVersion %></strong></span>
       </div>
     </header>
 
     <div class="top-actions">
-      <button class="btn primary" type="button" onclick="openModal()">➕ Ajouter un bot</button>
+      <button class="btn primary" type="button" onclick="openModal()">AJOUTER UN BOT</button>
     </div>
 
     <section class="bots-grid">
       <% if (bots.length === 0) { %>
         <p class="muted">Aucun bot enregistré.</p>
       <% } else { %>
-        <% bots.forEach(bot => { 
+        <% bots.forEach(bot => {
              const stats = bot.stats || {};
              const currentVersion = stats.botVersion || "Inconnue";
              const isUpToDate = currentVersion === latestVersion;
@@ -57,21 +57,21 @@
                 <div>
                   <% if (currentVersion !== "Inconnue") { %>
                     <% if (isUpToDate) { %>
-                      <span class="tag tag-success">À jour</span>
+                      <span class="tag tag-success">À JOUR</span>
                     <% } else { %>
-                      <span class="tag tag-warn">Obsolète</span>
+                      <span class="tag tag-warn">OBSOLÈTE</span>
                     <% } %>
                   <% } else { %>
-                    <span class="tag tag-muted">Aucune info version</span>
+                    <span class="tag tag-muted">AUCUNE INFO VERSION</span>
                   <% } %>
                 </div>
                 <div class="bot-actions">
-                  <button class="btn small" type="button" onclick="showToken('<%= bot._id %>')">🔐 Voir Token</button>
-                  <button class="btn small" type="button" onclick="forceRestart('<%= bot._id %>')">🔄 Redémarrer</button>
-                  <button class="btn small" type="button" onclick="forceUpdate('<%= bot._id %>')">⬆ Forcer màj</button>
+                  <button class="btn small" type="button" onclick="showToken('<%= bot._id %>')">VOIR TOKEN</button>
+                  <button class="btn small" type="button" onclick="forceRestart('<%= bot._id %>')">REDÉMARRER</button>
+                  <button class="btn small" type="button" onclick="forceUpdate('<%= bot._id %>')">FORCER MISE À JOUR</button>
                   <form action="/owner/bots/<%= bot._id %>/delete" method="POST" style="display:inline;"
                         onsubmit="return confirm('Supprimer ce bot ?');">
-                    <button type="submit" class="btn danger small">🗑️ Supprimer</button>
+                    <button type="submit" class="btn danger small">SUPPRIMER</button>
                   </form>
                 </div>
               </div>
@@ -93,22 +93,22 @@
   </main>
 
   <footer class="footer">
-    © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
-    <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
+    © <%= new Date().getFullYear() %> — HOME UPDATE PANEL ·
+    <a href="<%= support %>" target="_blank" rel="noopener">DISCORD SUPPORT</a>
   </footer>
 
   <!-- Modal ajout bot -->
   <div id="bot-modal" class="modal hidden">
     <div class="modal-box">
-      <h2>Ajouter un bot</h2>
+      <h2>AJOUTER UN BOT</h2>
       <form action="/owner/bots/add" method="POST">
-        <input class="input" type="text" name="name" placeholder="Nom du bot (ex : Smiddy)" required />
+        <input class="input" type="text" name="name" placeholder="Nom du bot" required />
         <input class="input" type="text" name="ownerId" placeholder="ID Discord du propriétaire (optionnel)" />
         <input class="input" type="text" name="tokenPlain" placeholder="Token du bot" required />
         <textarea class="input textarea" name="notes" rows="3" placeholder="Notes (serveur, usage, etc.)"></textarea>
         <div class="modal-actions">
-          <button type="button" class="btn" onclick="closeModal()">Annuler</button>
-          <button type="submit" class="btn primary">Ajouter</button>
+          <button type="button" class="btn" onclick="closeModal()">ANNULER</button>
+          <button type="submit" class="btn primary">AJOUTER</button>
         </div>
       </form>
     </div>
@@ -143,13 +143,13 @@
       }
     }
 
-    // ces deux là sont à implémenter côté backend si tu veux qu'ils fassent vraiment quelque chose
+    // à implémenter côté backend
     function forceRestart(id) {
-      alert("🔄 Bouton redémarrer : à implémenter côté backend (/owner/bots/"+id+"/restart).");
+      alert("Redémarrage à implémenter côté backend (/owner/bots/"+id+"/restart).");
     }
 
     function forceUpdate(id) {
-      alert("⬆ Bouton forcer mise à jour : à implémenter côté backend (/owner/bots/"+id+"/force-update).");
+      alert("Mise à jour forcée à implémenter côté backend (/owner/bots/"+id+"/force-update).");
     }
   </script>
 </body>

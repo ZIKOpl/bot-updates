@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Corbeille • HOME UPDATE</title>
+  <title>CORBEILLE • HOME UPDATE</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/style.css" />
 </head>
@@ -14,24 +14,24 @@
       <span>HOME UPDATE</span>
     </div>
     <nav class="sidebar-nav">
-      <a href="/dashboard">📦 Releases</a>
-      <a href="/owner/bots">🤖 Mes Bots</a>
-      <a href="/trash" class="active">🗑️ Corbeille</a>
-      <a href="/">🏠 Accueil</a>
+      <a href="/dashboard">RELEASES</a>
+      <a href="/owner/bots">MES BOTS</a>
+      <a href="/trash" class="active">CORBEILLE</a>
+      <a href="/">ACCUEIL</a>
     </nav>
     <div class="sidebar-bottom">
-      <a href="/logout" class="danger">🚪 Déconnexion</a>
+      <a href="/logout" class="danger">DÉCONNEXION</a>
     </div>
   </aside>
 
   <main class="dash-content">
     <header class="page-header">
-      <h1>🗑️ Corbeille des releases</h1>
-      <p>Versions supprimées. Tu peux les restaurer ou les supprimer définitivement.</p>
+      <h1>CORBEILLE DES RELEASES</h1>
+      <p>VERSIONS SUPPRIMÉES. TU PEUX LES RESTAURER OU LES SUPPRIMER DÉFINITIVEMENT.</p>
     </header>
 
     <section class="card">
-      <h2>Releases en corbeille</h2>
+      <h2>RELEASES EN CORBEILLE</h2>
       <% if (!items || items.length === 0) { %>
         <p class="muted">Aucune release en corbeille.</p>
       <% } else { %>
@@ -53,11 +53,11 @@
               </div>
               <div class="release-actions">
                 <form action="/trash/restore/<%= item._id %>" method="post" style="display:inline-block; margin-right:6px;">
-                  <button type="submit" class="btn small">♻ Restaurer</button>
+                  <button type="submit" class="btn small">RESTAURER</button>
                 </form>
                 <form action="/trash/delete/<%= item._id %>" method="post" style="display:inline-block;"
                       onsubmit="return confirm('Supprimer définitivement cette release et son fichier ?');">
-                  <button type="submit" class="btn danger small">🗑️ Supprimer définitivement</button>
+                  <button type="submit" class="btn danger small">SUPPRIMER DÉFINITIVEMENT</button>
                 </form>
               </div>
             </li>
@@ -68,8 +68,8 @@
   </main>
 
   <footer class="footer">
-    © <%= new Date().getFullYear() %> — HOME UPDATE Panel ·
-    <a href="<%= support %>" target="_blank" rel="noopener">Discord</a>
+    © <%= new Date().getFullYear() %> — HOME UPDATE PANEL ·
+    <a href="<%= support %>" target="_blank" rel="noopener">DISCORD SUPPORT</a>
   </footer>
 </body>
 </html>
