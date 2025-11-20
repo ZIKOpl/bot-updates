@@ -42,8 +42,14 @@
         </div>
       </div>
       <div class="strip-right">
-        <div class="metric"><div class="metric-title">Date</div><div class="metric-value"><%= date %></div></div>
-        <div class="metric"><div class="metric-title">Téléchargements</div><div class="metric-value"><%= downloads %></div></div>
+        <div class="metric">
+          <div class="metric-title">Date</div>
+          <div class="metric-value"><%= date %></div>
+        </div>
+        <div class="metric">
+          <div class="metric-title">Téléchargements</div>
+          <div class="metric-value"><%= downloads %></div>
+        </div>
       </div>
     </section>
 
@@ -51,18 +57,28 @@
       <div class="tile card-tilt">
         <h2>COMMENT METTRE À JOUR TON BOT</h2>
         <ul class="steps">
-          <li>1. SUR DISCORD, ENTRE <strong>+UPDATE</strong>.</li>
-          <li>2. ATTENDS QUE LE BOT INSTALLE LES FICHIERS.</li>
-          <li>3. LE BOT SE RELANCE AUTOMATIQUEMENT.</li>
+          <li>1. Sur Discord, entre la commande <strong>+update</strong>.</li>
+          <li>2. Le bot contacte HOME UPDATE et télécharge la dernière version.</li>
+          <li>3. Les fichiers sont mis à jour et le bot redémarre.</li>
         </ul>
+        <p class="muted">Tout se fait automatiquement, sans intervention manuelle sur le serveur.</p>
       </div>
 
       <div class="tile card-tilt">
         <h2>STATISTIQUES</h2>
         <div class="stat-grid">
-          <div class="stat"><div class="stat-kpi"><%= totalBots %></div><div class="stat-label">Total bots</div></div>
-          <div class="stat"><div class="stat-kpi"><%= upToDate %></div><div class="stat-label">À jour</div></div>
-          <div class="stat"><div class="stat-kpi"><%= outdated %></div><div class="stat-label">Obsolètes</div></div>
+          <div class="stat">
+            <div class="stat-kpi"><%= totalBots %></div>
+            <div class="stat-label">Total bots</div>
+          </div>
+          <div class="stat">
+            <div class="stat-kpi"><%= upToDate %></div>
+            <div class="stat-label">À jour</div>
+          </div>
+          <div class="stat">
+            <div class="stat-kpi"><%= outdated %></div>
+            <div class="stat-label">Obsolètes</div>
+          </div>
         </div>
       </div>
     </section>

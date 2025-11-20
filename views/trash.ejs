@@ -6,22 +6,26 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/style.css" />
 </head>
-<body>
-  <nav class="nav">
-    <div class="brand">
-      <img src="/logo.png" alt="HOME UPDATE" class="nav-logo" />
-      <span class="brand-text">HOME UPDATE</span>
+<body class="dash">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="/logo.png" alt="HOME UPDATE" class="sidebar-logo" />
+      <span>HOME UPDATE</span>
     </div>
-    <div class="nav-right">
-      <a class="btn" href="/dashboard">Dashboard</a>
-      <a class="btn" href="/owner/bots">Mes Bots</a>
-      <a class="btn" href="/">Accueil</a>
-      <a class="btn danger" href="/logout">Déconnexion</a>
+    <nav class="sidebar-nav">
+      <a href="/dashboard">📦 Releases</a>
+      <a href="/owner/bots">🤖 Mes Bots</a>
+      <a href="/trash" class="active">🗑️ Corbeille</a>
+      <a href="/">🏠 Accueil</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <a href="/logout" class="danger">🚪 Déconnexion</a>
     </div>
-  </nav>
+  </aside>
 
-  <main class="container">
-    <header class="hero" style="text-align:left;">
+  <main class="dash-content">
+    <header class="page-header">
       <h1>🗑️ Corbeille des releases</h1>
       <p>Versions supprimées. Tu peux les restaurer ou les supprimer définitivement.</p>
     </header>
@@ -38,7 +42,10 @@
                 <div class="release-dot"><%= item.version %></div>
                 <div class="release-meta">
                   <div class="release-title"><%= item.version %></div>
-                  <div class="muted">Supprimée le <%= new Date(item.deletedAt).toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}) %></div>
+                  <div class="muted">
+                    Supprimée le
+                    <%= new Date(item.deletedAt).toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}) %>
+                  </div>
                   <% if (item.notes) { %>
                     <div class="muted" style="margin-top:6px"><%= item.notes %></div>
                   <% } %>
@@ -48,10 +55,9 @@
                 <form action="/trash/restore/<%= item._id %>" method="post" style="display:inline-block; margin-right:6px;">
                   <button type="submit" class="btn small">♻ Restaurer</button>
                 </form>
-                <form action="/trash/delete/<%= item._id %>" method="post" style="display:inline-block;">
-                  <button type="submit" class="btn danger small" onclick="return confirm('Supprimer définitivement cette release et son fichier ?');">
-                    🗑️ Supprimer définitivement
-                  </button>
+                <form action="/trash/delete/<%= item._id %>" method="post" style="display:inline-block;"
+                      onsubmit="return confirm('Supprimer définitivement cette release et son fichier ?');">
+                  <button type="submit" class="btn danger small">🗑️ Supprimer définitivement</button>
                 </form>
               </div>
             </li>

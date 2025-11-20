@@ -1,4 +1,4 @@
-/* ===================== THEME GLOBAL — GLASS LIGHT ===================== */
+/* ===================== THEME GLOBAL — GLASS LIGHT + ANIMATIONS ===================== */
 :root {
   --bg: #f4f5fb;
   --bg-soft: #eef1fb;
@@ -25,13 +25,13 @@
   box-sizing: border-box;
 }
 
+/* ===================== BODY / BACKGROUND ===================== */
 html,
 body {
   margin: 0;
   padding: 0;
 }
 
-/* ===================== BODY / BACKGROUND ===================== */
 body {
   min-height: 100vh;
   font-family: var(--font-main);
@@ -43,6 +43,12 @@ body {
     linear-gradient(180deg, #f7f8ff, #edf0ff);
   position: relative;
   overflow-x: hidden;
+  animation: bodyFadeIn 0.45s ease-out;
+}
+
+@keyframes bodyFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* halos subtils */
@@ -69,7 +75,7 @@ body::after {
   right: -120px;
 }
 
-/* Pour être sûr que tout le contenu passe au-dessus du fond */
+/* Remonter tout le contenu au-dessus du fond */
 .container,
 .nav,
 .footer,
@@ -92,11 +98,17 @@ body::after {
   align-items: center;
   justify-content: space-between;
   padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.88);
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 16px 35px rgba(15, 23, 42, 0.06);
+  animation: navSlide 0.3s ease-out;
+}
+
+@keyframes navSlide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .brand {
@@ -145,9 +157,13 @@ body::after {
   justify-content: center;
   gap: 6px;
   box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
-  transition: transform var(--transition), box-shadow var(--transition),
-    background var(--transition), border-color var(--transition),
-    color var(--transition), opacity 0.2s ease;
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition),
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition),
+    opacity 0.2s ease;
 }
 
 .btn:hover {
@@ -188,6 +204,12 @@ body::after {
   max-width: 1120px;
   margin: 0 auto;
   padding: 0 18px 40px;
+  animation: containerFade 0.45s ease-out;
+}
+
+@keyframes containerFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ===================== HERO / TITRES ===================== */
@@ -211,7 +233,7 @@ body::after {
   font-size: 0.98rem;
 }
 
-/* version pill sur la home */
+/* version pill sur la home / dashboard */
 .version-pill {
   display: inline-flex;
   align-items: center;
@@ -239,6 +261,12 @@ body::after {
   justify-content: space-between;
   gap: 18px;
   box-shadow: var(--shadow-soft);
+  animation: stripIn 0.4s ease-out;
+}
+
+@keyframes stripIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .strip-left {
@@ -260,6 +288,13 @@ body::after {
   background: linear-gradient(145deg, #3d7eff, #7da5ff);
   color: #ffffff;
   box-shadow: 0 16px 36px rgba(61, 126, 255, 0.55);
+  animation: badgePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%   { transform: scale(1);   box-shadow: 0 0 16px rgba(61,126,255,0.4); }
+  50%  { transform: scale(1.05);box-shadow: 0 0 30px rgba(61,126,255,0.7); }
+  100% { transform: scale(1);   box-shadow: 0 0 16px rgba(61,126,255,0.4); }
 }
 
 .strip-info h3 {
@@ -322,17 +357,25 @@ body::after {
   box-shadow: var(--shadow-soft);
   position: relative;
   overflow: hidden;
+  transform-origin: center;
+  animation: cardPop 0.35s ease-out;
 }
 
 .card-tilt {
   transition: transform var(--transition), box-shadow var(--transition),
-    border-color var(--transition);
+    border-color var(--transition), translate var(--transition);
 }
 
 .card-tilt:hover {
   transform: translateY(-4px);
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
   border-color: rgba(61, 126, 255, 0.3);
+}
+
+/* petit effet "pop" à l'apparition */
+@keyframes cardPop {
+  from { opacity: 0; transform: scale(0.98) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .tile h2 {
@@ -399,6 +442,8 @@ body::after {
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(var(--blur));
   -webkit-backdrop-filter: blur(var(--blur));
+  transform-origin: center;
+  animation: cardPop 0.35s ease-out;
 }
 
 .upload-card {
@@ -425,8 +470,11 @@ body::after {
   background: rgba(248, 250, 255, 0.9);
   color: var(--text);
   outline: none;
-  transition: border-color var(--transition), box-shadow var(--transition),
-    background var(--transition), transform 0.1s ease;
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition),
+    background var(--transition),
+    transform 0.1s ease;
   font-size: 0.92rem;
   margin-bottom: 12px;
 }
@@ -441,10 +489,6 @@ body::after {
   background: #ffffff;
 }
 
-.textarea {
-  resize: vertical;
-}
-
 /* ===================== DROP ZONE ===================== */
 .drop-zone {
   border: 1.8px dashed rgba(148, 163, 184, 0.9);
@@ -456,8 +500,11 @@ body::after {
   color: var(--muted);
   font-size: 0.9rem;
   cursor: pointer;
-  transition: border-color var(--transition), background var(--transition),
-    box-shadow var(--transition), transform 0.12s ease;
+  transition:
+    border-color var(--transition),
+    background var(--transition),
+    box-shadow var(--transition),
+    transform 0.12s ease;
 }
 
 .drop-zone.hover {
@@ -486,14 +533,24 @@ body::after {
   border-radius: 16px;
   border: 1px solid rgba(148, 163, 184, 0.25);
   background: rgba(248, 250, 255, 0.98);
-  transition: box-shadow var(--transition), transform var(--transition),
-    border-color var(--transition);
+  transition:
+    box-shadow var(--transition),
+    transform var(--transition),
+    border-color var(--transition),
+    background var(--transition);
+  animation: releaseFade 0.35s ease-out;
+}
+
+@keyframes releaseFade {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .release-row:hover {
   box-shadow: 0 14px 32px rgba(15, 23, 42, 0.14);
   transform: translateY(-1px);
   border-color: rgba(61, 126, 255, 0.35);
+  background: rgba(246, 249, 255, 1);
 }
 
 .release-left {
@@ -546,8 +603,12 @@ body::after {
   align-items: center;
   justify-content: center;
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
-  transition: background var(--transition), box-shadow var(--transition),
-    transform 0.1s ease, border-color var(--transition), opacity 0.18s ease;
+  transition:
+    background var(--transition),
+    box-shadow var(--transition),
+    transform 0.1s ease,
+    border-color var(--transition),
+    opacity 0.18s ease;
 }
 
 .icon-btn:hover {
@@ -652,15 +713,51 @@ body::after {
   font-size: 3rem;
 }
 
-/* ===================== OWNER_BOTS ADAPT (classes déjà dans le fichier) ===================== */
-/* On harmonise juste légèrement le fond via classes existantes */
+/* ===================== OWNER_BOTS ADAPT ===================== */
 .bot-card {
-  /* styles de base définis en inline dans owner_bots.ejs,
-     on ajoute juste un peu de cohérence si le inline est absent */
   border-radius: 16px;
   border-color: rgba(148, 163, 184, 0.45);
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
   box-shadow: var(--shadow-soft);
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition),
+    border-color var(--transition),
+    background var(--transition);
+  animation: cardPop 0.35s ease-out;
+}
+
+.bot-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.16);
+  border-color: rgba(61, 126, 255, 0.4);
+}
+
+/* tags status bots (owner_bots.ejs) */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  gap: 4px;
+}
+.tag-success {
+  background: rgba(34, 197, 94, 0.06);
+  color: #15803d;
+  border-color: rgba(34, 197, 94, 0.35);
+}
+.tag-warn {
+  background: rgba(234, 179, 8, 0.08);
+  color: #92400e;
+  border-color: rgba(234, 179, 8, 0.4);
+}
+.tag-muted {
+  background: rgba(148, 163, 184, 0.15);
+  color: #4b5563;
+  border-color: rgba(148, 163, 184, 0.5);
 }
 
 /* ===================== RESPONSIVE ===================== */

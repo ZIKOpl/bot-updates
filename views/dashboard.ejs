@@ -6,30 +6,37 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/style.css" />
 </head>
-<body>
-  <!-- NAV -->
-  <nav class="nav">
-    <div class="brand">
-      <img src="/logo.png" alt="HOME UPDATE" class="nav-logo" />
-      <span class="brand-text">HOME UPDATE</span>
+<body class="dash">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="/logo.png" alt="HOME UPDATE" class="sidebar-logo" />
+      <span>HOME UPDATE</span>
     </div>
-    <div class="nav-right">
-      <a class="btn" href="/">Accueil</a>
-      <a class="btn" href="/owner/bots">Mes Bots</a>
-      <a class="btn" href="/trash">Corbeille</a>
-      <a class="btn danger" href="/logout">Déconnexion</a>
+    <nav class="sidebar-nav">
+      <a href="/dashboard" class="active">Releases</a>
+      <a href="/owner/bots">Mes Bots</a>
+      <a href="/trash">Corbeille</a>
+      <a href="/">Accueil</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <a href="/logout" class="danger">Déconnexion</a>
     </div>
-  </nav>
+  </aside>
 
-  <main class="container">
-    <header class="hero">
-      <h1>Panneau de gestion</h1>
-      <p>Glisse la nouvelle version, ajoute des notes et publie.</p>
-      <div style="margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+  <!-- CONTENU -->
+  <main class="dash-content">
+    <header class="page-header">
+      <h1>Releases</h1>
+      <p>Uploader, gérer et restaurer les versions du bot.</p>
+      <div style="margin-top:10px;">
         <span class="version-pill">Version active : <strong><%= latest %></strong></span>
-        <a class="btn primary" href="/download/latest">⬇ Télécharger la dernière version</a>
       </div>
     </header>
+
+    <div class="top-actions">
+      <a class="btn primary" href="/download/latest">⬇ Télécharger la dernière version</a>
+    </div>
 
     <section class="dashboard-flex">
       <!-- Upload -->
@@ -59,7 +66,9 @@
                   <div class="release-dot"><%= r.version %></div>
                   <div class="release-meta">
                     <div class="release-title"><%= r.version %></div>
-                    <div class="muted"><%= new Date(r.createdAt).toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}) %></div>
+                    <div class="muted">
+                      <%= new Date(r.createdAt).toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}) %>
+                    </div>
                     <% if (r.notes) { %>
                       <div class="muted" style="margin-top:6px"><%= r.notes %></div>
                     <% } %>
@@ -68,10 +77,19 @@
                 <div class="release-actions">
                   <button class="icon-btn more-btn" aria-label="menu" data-version="<%= r.version %>">⋮</button>
                   <div class="menu hidden" id="menu-<%= r.version %>">
-                    <a class="menu-item" href="/download/<%= r.version %>">⬇ Télécharger cette version</a>
-                    <button class="menu-item revert" data-version="<%= r.version %>">🔁 Revenir sur cette version</button>
-                    <form action="/delete/<%= r.version %>" method="post" style="margin:0;">
-                      <button type="submit" class="menu-item danger">🗑️ Envoyer à la corbeille</button>
+                    <a class="menu-item" href="/download/<%= encodeURIComponent(r.version) %>">
+                      ⬇ Télécharger cette version
+                    </a>
+                    <form action="/revert/<%= encodeURIComponent(r.version) %>" method="post" style="margin:0;">
+                      <button type="submit" class="menu-item">
+                        🔁 Revenir sur cette version
+                      </button>
+                    </form>
+                    <form action="/delete/<%= encodeURIComponent(r.version) %>" method="post" style="margin:0;"
+                          onsubmit="return confirm('Envoyer cette release dans la corbeille ?');">
+                      <button type="submit" class="menu-item danger">
+                        🗑️ Envoyer à la corbeille
+                      </button>
                     </form>
                   </div>
                 </div>
@@ -125,29 +143,6 @@
 
     window.addEventListener('click', () => {
       document.querySelectorAll('.menu').forEach(m => m.classList.add('hidden'));
-    });
-
-    // Boutons "Revenir sur cette version"
-    document.querySelectorAll('.revert').forEach(btn => {
-      btn.addEventListener('click', async e => {
-        e.stopPropagation();
-        const v = btn.dataset.version;
-        if (!confirm(`Revenir à la version ${v} ?`)) return;
-
-        try {
-          const res = await fetch(`/revert/${encodeURIComponent(v)}`, {
-            method: 'POST'
-          });
-          if (res.ok) {
-            alert('Version définie comme active ✔');
-            window.location.reload();
-          } else {
-            alert("Erreur lors du revert ❌");
-          }
-        } catch (err) {
-          alert("Erreur réseau lors du revert ❌");
-        }
-      });
     });
   </script>
 </body>
