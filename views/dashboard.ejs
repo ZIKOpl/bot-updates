@@ -14,13 +14,13 @@
       <span>HOME UPDATE</span>
     </div>
     <nav class="sidebar-nav">
-      <a href="/dashboard" class="active">Releases</a>
-      <a href="/owner/bots">Mes Bots</a>
-      <a href="/trash">Corbeille</a>
-      <a href="/">Accueil</a>
+      <a href="/dashboard" class="active">📦 Releases</a>
+      <a href="/owner/bots">🤖 Mes Bots</a>
+      <a href="/trash">🗑️ Corbeille</a>
+      <a href="/">🏠 Accueil</a>
     </nav>
     <div class="sidebar-bottom">
-      <a href="/logout" class="danger">Déconnexion</a>
+      <a href="/logout" class="danger">🚪 Déconnexion</a>
     </div>
   </aside>
 
@@ -40,7 +40,7 @@
 
     <section class="dashboard-flex">
       <!-- Upload -->
-      <div class="card upload-card card-tilt">
+      <div class="card upload-card">
         <h2>📥 Nouvelle release</h2>
         <form id="uploadForm" class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
           <input class="input" type="text" name="version" placeholder="Numéro de version (ex : 2.6)" required />
@@ -54,7 +54,7 @@
       </div>
 
       <!-- Liste versions -->
-      <div class="card timeline-card card-tilt">
+      <div class="card timeline-card">
         <h2>🕒 Versions précédentes</h2>
         <% if (releases.length === 0) { %>
           <p class="muted">Aucune release disponible</p>

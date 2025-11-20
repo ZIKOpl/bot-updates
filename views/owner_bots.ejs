@@ -5,113 +5,6 @@
   <title>Gestion des bots • HOME UPDATE</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/style.css" />
-  <style>
-    .bots-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      margin-bottom: 40px;
-      justify-content: center;
-    }
-    .bot-card {
-      border-radius: 16px;
-      border: 1px solid rgba(148, 163, 184, 0.45);
-      background: rgba(255, 255, 255, 0.95);
-      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
-      padding: 14px 16px;
-      width: 100%;
-      max-width: 520px;
-      transition: .2s ease;
-    }
-    .bot-card.open {
-      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
-    }
-    .bot-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      gap: 12px;
-    }
-    .bot-title {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    .bot-name {
-      font-weight: 700;
-      font-size: 0.98rem;
-    }
-    .bot-sub {
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-    .bot-details {
-      display: none;
-      padding-top: 8px;
-      margin-top: 8px;
-      border-top: 1px solid rgba(148, 163, 184, 0.3);
-      font-size: 0.9rem;
-    }
-    .bot-card.open .bot-details {
-      display: block;
-    }
-    .bot-actions button,
-    .bot-actions .btn {
-      margin-left: 6px;
-    }
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      border: 1px solid transparent;
-      gap: 4px;
-    }
-    .tag-success {
-      background: rgba(34, 197, 94, 0.06);
-      color: #15803d;
-      border-color: rgba(34, 197, 94, 0.35);
-    }
-    .tag-warn {
-      background: rgba(234, 179, 8, 0.08);
-      color: #92400e;
-      border-color: rgba(234, 179, 8, 0.4);
-    }
-    .tag-muted {
-      background: rgba(148, 163, 184, 0.15);
-      color: #4b5563;
-      border-color: rgba(148, 163, 184, 0.5);
-    }
-
-    /* modal simple */
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(15,23,42,.48);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-    }
-    .modal.hidden { display:none; }
-    .modal-box {
-      background:#fff;
-      border-radius:18px;
-      padding:20px 22px;
-      max-width:420px;
-      width:100%;
-      box-shadow:0 20px 50px rgba(15,23,42,.35);
-    }
-    .modal-actions {
-      margin-top:14px;
-      display:flex;
-      justify-content:flex-end;
-      gap:10px;
-    }
-  </style>
 </head>
 <body class="dash">
   <!-- SIDEBAR -->
@@ -222,6 +115,7 @@
   </div>
 
   <script>
+    // ouverture/fermeture détails
     document.querySelectorAll('.bot-header').forEach(h => {
       h.addEventListener('click', (e) => {
         if (e.target.closest('button') || e.target.closest('form')) return;
@@ -229,6 +123,15 @@
       });
     });
 
+    // modal
+    function openModal() {
+      document.getElementById('bot-modal').classList.remove('hidden');
+    }
+    function closeModal() {
+      document.getElementById('bot-modal').classList.add('hidden');
+    }
+
+    // voir token
     async function showToken(id) {
       try {
         const res = await fetch(`/owner/bots/${id}/decrypt`);
@@ -240,19 +143,13 @@
       }
     }
 
+    // ces deux là sont à implémenter côté backend si tu veux qu'ils fassent vraiment quelque chose
     function forceRestart(id) {
-      alert("🔄 Bouton redémarrer : à implémenter côté backend (route /owner/bots/" + id + "/restart).");
+      alert("🔄 Bouton redémarrer : à implémenter côté backend (/owner/bots/"+id+"/restart).");
     }
 
     function forceUpdate(id) {
-      alert("⬆ Bouton forcer mise à jour : à implémenter côté backend (route /owner/bots/" + id + "/force-update).");
-    }
-
-    function openModal() {
-      document.getElementById('bot-modal').classList.remove('hidden');
-    }
-    function closeModal() {
-      document.getElementById('bot-modal').classList.add('hidden');
+      alert("⬆ Bouton forcer mise à jour : à implémenter côté backend (/owner/bots/"+id+"/force-update).");
     }
   </script>
 </body>
