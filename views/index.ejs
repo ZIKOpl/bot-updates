@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
@@ -27,56 +27,89 @@
 
   <main class="container">
     <header class="hero">
-      <span class="eyebrow">Fleet control</span>
-      <h1>Une commande, tous tes bots à jour.</h1>
+      <span class="eyebrow">Panel opérationnel</span>
+      <h1>Une commande, tous tes bots à jour</h1>
       <p>Home Update distribue tes releases et surveille chaque instance en direct, sans FTP ni intervention manuelle.</p>
-      <span class="version-pill">Dernière version : <strong><%= version %></strong></span>
+
+      <div class="stat-bar">
+        <div class="stat-item">
+          <b><%= downloads %></b>
+          <span>Téléchargements</span>
+        </div>
+        <div class="stat-item">
+          <b><%= totalBots %></b>
+          <span>Bots suivis</span>
+        </div>
+        <div class="stat-item">
+          <b>24/7</b>
+          <span>Signal en direct</span>
+        </div>
+      </div>
     </header>
 
-    <section class="release-strip">
-      <div class="strip-left">
-        <div class="version-badge"><%= version %></div>
-        <div class="strip-info">
-          <h3>Dernière release</h3>
-          <% if (last) { %>
-            <p class="notes"><%= last.notes || "Aucune note fournie." %></p>
-          <% } else { %>
-            <p class="notes">Aucune release disponible pour le moment.</p>
-          <% } %>
-        </div>
-      </div>
-      <div class="strip-right">
-        <div class="metric">
-          <div class="metric-title">Publiée le</div>
-          <div class="metric-value"><%= date %></div>
-        </div>
-        <div class="metric">
-          <div class="metric-title">Téléchargements</div>
-          <div class="metric-value"><%= downloads %></div>
-        </div>
-      </div>
-    </section>
-
     <section class="home-tiles">
+      <!-- Carte 1 : comment mettre à jour -->
       <div class="tile">
+        <div class="tile-top">
+          <div class="tile-badges">
+            <span class="badge">Guide</span>
+            <span class="badge orange">3 étapes</span>
+          </div>
+          <span class="badge green"><span class="dot"></span> Automatique</span>
+        </div>
+
+        <div class="tile-stat-row">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>
+          </div>
+          <div class="tile-stat">
+            <b>+update</b>
+            <span>Commande Discord</span>
+          </div>
+        </div>
+
+        <hr class="divider" />
+
         <h2>Mettre à jour un bot</h2>
+        <p class="sub">Le processus complet, du bot à la nouvelle version.</p>
         <ul class="steps">
-          <li><span class="n">01</span> Sur Discord, envoie la commande <strong>+update</strong>.</li>
-          <li><span class="n">02</span> Le bot contacte Home Update et récupère la dernière version.</li>
-          <li><span class="n">03</span> Les fichiers sont remplacés et le bot redémarre tout seul.</li>
+          <li><span class="check">✓</span> Le bot envoie <strong>+update</strong> sur Discord</li>
+          <li><span class="check">✓</span> Il contacte Home Update et télécharge la dernière release</li>
+          <li><span class="check">✓</span> Les fichiers sont remplacés et le bot redémarre seul</li>
         </ul>
-        <span class="muted">Aucun accès FTP, aucune manipulation à la main : tout passe par la commande et l'API.</span>
+
+        <div class="tile-footer">
+          <a class="btn primary" href="<%= user ? '/dashboard' : '/login' %>">Voir les releases →</a>
+        </div>
       </div>
 
+      <!-- Carte 2 : état de la flotte -->
       <div class="tile">
-        <h2>
-          État de la flotte
-          <span class="pulse-strip"><span></span><span></span><span></span><span></span><span></span><span></span></span>
-        </h2>
+        <div class="tile-top">
+          <div class="tile-badges">
+            <span class="badge">Flotte</span>
+          </div>
+          <span class="badge green"><span class="dot"></span> En direct</span>
+        </div>
+
+        <div class="tile-stat-row">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M9 8V6a3 3 0 016 0v2"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/></svg>
+          </div>
+          <div class="tile-stat">
+            <b><%= totalBots %></b>
+            <span>Bots enregistrés</span>
+          </div>
+        </div>
+
+        <hr class="divider" />
+
+        <h2>État de la flotte</h2>
+        <p class="sub">Dernière version : <strong><%= version %></strong> — publiée le <%= date %>.</p>
         <div class="stat-grid">
           <div class="stat">
             <div class="stat-kpi"><%= totalBots %></div>
-            <div class="stat-label">Bots enregistrés</div>
+            <div class="stat-label">Total</div>
           </div>
           <div class="stat">
             <div class="stat-kpi"><%= upToDate %></div>
@@ -86,6 +119,50 @@
             <div class="stat-kpi"><%= outdated %></div>
             <div class="stat-label">Obsolètes</div>
           </div>
+        </div>
+
+        <div class="tile-footer">
+          <a class="btn primary" href="<%= user ? '/owner/status' : '/login' %>">Voir le détail →</a>
+        </div>
+      </div>
+    </section>
+
+    <h2 class="section-title">Pourquoi Home Update ?</h2>
+    <section class="why-grid">
+      <div class="why-card">
+        <div class="icon-box sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>
+        </div>
+        <div>
+          <h4>Mise à jour instantanée</h4>
+          <p>Appliquée en quelques secondes après la commande +update.</p>
+        </div>
+      </div>
+      <div class="why-card">
+        <div class="icon-box sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>
+        </div>
+        <div>
+          <h4>100% sécurisé</h4>
+          <p>Tokens chiffrés en AES-256-GCM, jamais stockés en clair.</p>
+        </div>
+      </div>
+      <div class="why-card">
+        <div class="icon-box sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0115.4-6.4M21 12a9 9 0 01-15.4 6.4"/><path d="M18 3v4h-4M6 21v-4h4"/></svg>
+        </div>
+        <div>
+          <h4>Restauration en un clic</h4>
+          <p>Chaque release supprimée reste récupérable depuis la corbeille.</p>
+        </div>
+      </div>
+      <div class="why-card">
+        <div class="icon-box sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15v-3a8 8 0 0116 0v3"/><path d="M4 15a2 2 0 002 2h1v-5H6a2 2 0 00-2 2zM20 15a2 2 0 00-2-2h-1v5h1a2 2 0 002-2z"/></svg>
+        </div>
+        <div>
+          <h4>Support 24/7</h4>
+          <p>Une équipe joignable directement sur Discord.</p>
         </div>
       </div>
     </section>
