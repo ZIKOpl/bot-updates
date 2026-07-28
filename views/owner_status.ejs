@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>BOTS CONNECTÉS • HOME UPDATE</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="dash">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="/logo.png" alt="HOME UPDATE" class="sidebar-logo" />
+      <span>HOME UPDATE</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard">RELEASES</a>
+      <a href="/owner/bots">MES BOTS</a>
+      <a href="/owner/status" class="active">BOTS CONNECTÉS</a>
+      <a href="/trash">CORBEILLE</a>
+      <a href="/">ACCUEIL</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <a href="/logout" class="danger">DÉCONNEXION</a>
+    </div>
+  </aside>
+
+  <main class="dash-content">
+    <header class="page-header">
+      <h1>BOTS CONNECTÉS</h1>
+      <p>TOUTES LES INSTANCES QUI SE SONT SIGNALÉES AU MANAGER, EN DIRECT.</p>
+      <div style="margin-top:10px;">
+        <span class="version-pill">DERNIÈRE VERSION : <strong><%= latestVersion %></strong></span>
+        <span class="version-pill">TOTAL : <strong><%= bots.length %></strong></span>
+        <span class="version-pill">EN LIGNE : <strong><%= bots.filter(b => b.online).length %></strong></span>
+      </div>
+    </header>
+
+    <section class="bots-grid">
+      <% if (bots.length === 0) { %>
+        <p class="muted">Aucun bot ne s'est encore signalé.</p>
+      <% } else { %>
+        <% bots.forEach(bot => {
+             const isUpToDate = bot.botVersion === latestVersion;
+        %>
+          <div class="bot-card">
+            <div class="bot-header">
+              <div class="bot-title">
+                <span class="bot-name"><%= bot.tag || bot.botId %></span>
+                <span class="bot-sub">ID Discord : <%= bot.botId %></span>
+                <span class="bot-sub">Version bot : <%= bot.botVersion %></span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+                <span class="tag <%= bot.online ? 'tag-success' : 'tag-muted' %>">
+                  <%= bot.online ? 'EN LIGNE' : 'HORS LIGNE' %>
+                </span>
+                <% if (bot.botVersion !== 'Inconnue') { %>
+                  <span class="tag <%= isUpToDate ? 'tag-success' : 'tag-warn' %>">
+                    <%= isUpToDate ? 'À JOUR' : 'OBSOLÈTE' %>
+                  </span>
+                <% } %>
+              </div>
+            </div>
+            <div class="bot-details">
+              <p><strong>Démarré :</strong>
+                <%= bot.startedAt ? new Date(bot.startedAt).toLocaleString("fr-FR") : "Inconnu" %>
+              </p>
+              <p><strong>Dernier signal :</strong>
+                <%= bot.lastCheck ? new Date(bot.lastCheck).toLocaleString("fr-FR") : "Jamais" %>
+              </p>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+    </section>
+  </main>
+
+  <footer class="footer">
+    © <%= new Date().getFullYear() %> — HOME UPDATE PANEL ·
+    <a href="<%= support %>" target="_blank" rel="noopener">DISCORD SUPPORT</a>
+  </footer>
+</body>
+</html>
