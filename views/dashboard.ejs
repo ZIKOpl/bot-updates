@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Releases — Home Update</title>
+  <title>Releases — AddUpdate</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,13 +13,12 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="/logo.png" alt="Home Update" class="sidebar-logo" />
-      <span>Home Update</span>
+      <img src="/logo.png" alt="AddUpdate" class="sidebar-logo" />
+      <span>AddUpdate</span>
     </div>
     <nav class="sidebar-nav">
       <a href="/dashboard" class="active">Releases</a>
       <a href="/owner/status">Bots connectés</a>
-      <a href="/owner/bots">Mes bots</a>
       <a href="/trash">Corbeille</a>
       <a href="/">Accueil</a>
     </nav>
@@ -34,19 +33,58 @@
       <span class="eyebrow">Deploy log</span>
       <h1>Releases</h1>
       <p>Uploade une nouvelle version, gère l'historique et restaure une release précédente.</p>
-      <div class="header-pills">
-        <span class="version-pill">Version active : <strong><%= latest %></strong></span>
-      </div>
     </header>
+
+    <div class="stat-bar" style="margin:22px 0 0; max-width:100%;">
+      <div class="stat-item">
+        <b><%= stats.downloads || 0 %></b>
+        <span>Téléchargements</span>
+      </div>
+      <div class="stat-item">
+        <b><%= totalBots %></b>
+        <span>Bots suivis</span>
+      </div>
+      <div class="stat-item">
+        <b><%= upToDate %></b>
+        <span>À jour</span>
+      </div>
+      <div class="stat-item">
+        <b><%= outdated %></b>
+        <span>Obsolètes</span>
+      </div>
+    </div>
 
     <div class="top-actions">
       <a class="btn primary" href="/download/latest">Télécharger la dernière version</a>
+      <span class="version-pill">Version active : <strong><%= latest %></strong></span>
     </div>
 
     <section class="dashboard-flex">
       <!-- Upload -->
-      <div class="card upload-card">
+      <div class="tile upload-card">
+        <div class="tile-top">
+          <div class="tile-badges">
+            <span class="badge">Upload</span>
+            <span class="badge orange">.zip</span>
+          </div>
+          <span class="badge green"><span class="dot"></span> Prêt</span>
+        </div>
+
+        <div class="tile-stat-row">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
+          </div>
+          <div class="tile-stat">
+            <b><%= releases.length %></b>
+            <span>Versions publiées</span>
+          </div>
+        </div>
+
+        <hr class="divider" />
+
         <h2>Nouvelle release</h2>
+        <p class="sub">Ajoute un ZIP, quelques notes, et publie.</p>
+
         <form id="uploadForm" class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
           <input class="input" type="text" name="version" placeholder="Numéro de version (ex : 2.6)" required />
           <textarea class="input textarea" name="notes" rows="3" placeholder="Notes de version (changements, corrections…)"></textarea>
@@ -54,13 +92,36 @@
             <span id="uploadText">Glisse un fichier .zip ou clique pour le sélectionner</span>
             <input id="fileInput" type="file" name="zip" accept=".zip" hidden />
           </div>
-          <button type="submit" class="btn primary">Uploader</button>
+          <div class="tile-footer" style="border-top:none; padding-top:0; justify-content:flex-start;">
+            <button type="submit" class="btn primary">Uploader</button>
+          </div>
         </form>
       </div>
 
       <!-- Liste versions -->
-      <div class="card timeline-card">
+      <div class="tile timeline-card">
+        <div class="tile-top">
+          <div class="tile-badges">
+            <span class="badge">Historique</span>
+          </div>
+          <span class="badge green"><span class="dot"></span> Live</span>
+        </div>
+
+        <div class="tile-stat-row">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 3v6h6"/><path d="M12 7v5l4 2"/></svg>
+          </div>
+          <div class="tile-stat">
+            <b><%= latest %></b>
+            <span>Version active</span>
+          </div>
+        </div>
+
+        <hr class="divider" />
+
         <h2>Historique des versions</h2>
+        <p class="sub">Restaure, retélécharge ou envoie une version dans la corbeille.</p>
+
         <% if (releases.length === 0) { %>
           <p class="empty">Aucune release disponible pour le moment.</p>
         <% } else { %>
@@ -107,7 +168,7 @@
   </main>
 
   <footer class="footer">
-    © <%= new Date().getFullYear() %> Home Update ·
+    © <%= new Date().getFullYear() %> AddUpdate ·
     <a href="<%= support %>" target="_blank" rel="noopener">Support Discord</a>
   </footer>
 
