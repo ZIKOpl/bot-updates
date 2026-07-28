@@ -2,39 +2,43 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>CORBEILLE • HOME UPDATE</title>
+  <title>Corbeille — Home Update</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body class="dash">
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="/logo.png" alt="HOME UPDATE" class="sidebar-logo" />
-      <span>HOME UPDATE</span>
+      <img src="/logo.png" alt="Home Update" class="sidebar-logo" />
+      <span>Home Update</span>
     </div>
     <nav class="sidebar-nav">
-      <a href="/dashboard">RELEASES</a>
-      <a href="/owner/status">BOTS CONNECTÉS</a>
-      <a href="/owner/bots">MES BOTS</a>
-      <a href="/trash" class="active">CORBEILLE</a>
-      <a href="/">ACCUEIL</a>
+      <a href="/dashboard">Releases</a>
+      <a href="/owner/status">Bots connectés</a>
+      <a href="/owner/bots">Mes bots</a>
+      <a href="/trash" class="active">Corbeille</a>
+      <a href="/">Accueil</a>
     </nav>
     <div class="sidebar-bottom">
-      <a href="/logout" class="danger">DÉCONNEXION</a>
+      <a href="/logout" class="danger">Déconnexion</a>
     </div>
   </aside>
 
   <main class="dash-content">
     <header class="page-header">
-      <h1>CORBEILLE DES RELEASES</h1>
-      <p>VERSIONS SUPPRIMÉES. TU PEUX LES RESTAURER OU LES SUPPRIMER DÉFINITIVEMENT.</p>
+      <span class="eyebrow">Archive</span>
+      <h1>Corbeille des releases</h1>
+      <p>Versions supprimées du panel. Tu peux les restaurer ou les effacer définitivement.</p>
     </header>
 
-    <section class="card">
-      <h2>RELEASES EN CORBEILLE</h2>
+    <section class="card" style="margin-top:22px; max-width:640px;">
+      <h2>Releases en corbeille</h2>
       <% if (!items || items.length === 0) { %>
-        <p class="muted">Aucune release en corbeille.</p>
+        <p class="empty">La corbeille est vide.</p>
       <% } else { %>
         <ul class="release-list2">
           <% items.forEach(item => { %>
@@ -52,13 +56,13 @@
                   <% } %>
                 </div>
               </div>
-              <div class="release-actions">
-                <form action="/trash/restore/<%= item._id %>" method="post" style="display:inline-block; margin-right:6px;">
-                  <button type="submit" class="btn small">RESTAURER</button>
+              <div class="release-actions" style="display:flex; gap:6px; align-items:flex-start;">
+                <form action="/trash/restore/<%= item._id %>" method="post" style="margin:0;">
+                  <button type="submit" class="btn small">Restaurer</button>
                 </form>
-                <form action="/trash/delete/<%= item._id %>" method="post" style="display:inline-block;"
+                <form action="/trash/delete/<%= item._id %>" method="post" style="margin:0;"
                       onsubmit="return confirm('Supprimer définitivement cette release et son fichier ?');">
-                  <button type="submit" class="btn danger small">SUPPRIMER DÉFINITIVEMENT</button>
+                  <button type="submit" class="btn danger small">Supprimer définitivement</button>
                 </form>
               </div>
             </li>
@@ -69,8 +73,8 @@
   </main>
 
   <footer class="footer">
-    © <%= new Date().getFullYear() %> — HOME UPDATE PANEL ·
-    <a href="<%= support %>" target="_blank" rel="noopener">DISCORD SUPPORT</a>
+    © <%= new Date().getFullYear() %> Home Update ·
+    <a href="<%= support %>" target="_blank" rel="noopener">Support Discord</a>
   </footer>
 </body>
 </html>
