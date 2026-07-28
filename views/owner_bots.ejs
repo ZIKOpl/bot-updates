@@ -2,45 +2,49 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>GESTION DES BOTS • HOME UPDATE</title>
+  <title>Mes bots — Home Update</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body class="dash">
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="/logo.png" alt="HOME UPDATE" class="sidebar-logo" />
-      <span>HOME UPDATE</span>
+      <img src="/logo.png" alt="Home Update" class="sidebar-logo" />
+      <span>Home Update</span>
     </div>
     <nav class="sidebar-nav">
-      <a href="/dashboard">RELEASES</a>
-      <a href="/owner/status">BOTS CONNECTÉS</a>
-      <a href="/owner/bots" class="active">MES BOTS</a>
-      <a href="/trash">CORBEILLE</a>
-      <a href="/">ACCUEIL</a>
+      <a href="/dashboard">Releases</a>
+      <a href="/owner/status">Bots connectés</a>
+      <a href="/owner/bots" class="active">Mes bots</a>
+      <a href="/trash">Corbeille</a>
+      <a href="/">Accueil</a>
     </nav>
     <div class="sidebar-bottom">
-      <a href="/logout" class="danger">DÉCONNEXION</a>
+      <a href="/logout" class="danger">Déconnexion</a>
     </div>
   </aside>
 
   <main class="dash-content">
     <header class="page-header">
-      <h1>GESTION DES BOTS</h1>
-      <p>LISTE DES BOTS QUI UTILISENT LE SYSTÈME DE MISE À JOUR.</p>
-      <div style="margin-top:10px;">
-        <span class="version-pill">DERNIÈRE VERSION DISPONIBLE : <strong><%= latestVersion %></strong></span>
+      <span class="eyebrow">Fleet registry</span>
+      <h1>Mes bots</h1>
+      <p>Les instances enregistrées dans le système de mise à jour.</p>
+      <div class="header-pills">
+        <span class="version-pill">Dernière version : <strong><%= latestVersion %></strong></span>
       </div>
     </header>
 
     <div class="top-actions">
-      <button class="btn primary" type="button" onclick="openModal()">AJOUTER UN BOT</button>
+      <button class="btn primary" type="button" onclick="openModal()">Ajouter un bot</button>
     </div>
 
     <section class="bots-grid">
       <% if (bots.length === 0) { %>
-        <p class="muted">Aucun bot enregistré.</p>
+        <p class="empty">Aucun bot enregistré pour le moment.</p>
       <% } else { %>
         <% bots.forEach(bot => {
              const stats = bot.stats || {};
@@ -50,36 +54,36 @@
           <div class="bot-card" data-id="<%= bot._id %>">
             <div class="bot-header">
               <div class="bot-title">
-                <span class="bot-name"><%= bot.name %></span>
-                <span class="bot-sub">Propriétaire : <%= bot.ownerId || "Inconnu" %></span>
-                <span class="bot-sub">Version bot : <%= currentVersion %></span>
-              </div>
-              <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+                <span class="led <%= currentVersion === 'Inconnue' ? 'off' : (isUpToDate ? 'on' : 'warn') %>"></span>
                 <div>
-                  <% if (currentVersion !== "Inconnue") { %>
-                    <% if (isUpToDate) { %>
-                      <span class="tag tag-success">À JOUR</span>
-                    <% } else { %>
-                      <span class="tag tag-warn">OBSOLÈTE</span>
-                    <% } %>
-                  <% } else { %>
-                    <span class="tag tag-muted">AUCUNE INFO VERSION</span>
-                  <% } %>
-                </div>
-                <div class="bot-actions">
-                  <button class="btn small" type="button" onclick="showToken('<%= bot._id %>')">VOIR TOKEN</button>
-                  <button class="btn small" type="button" onclick="forceRestart('<%= bot._id %>')">REDÉMARRER</button>
-                  <button class="btn small" type="button" onclick="forceUpdate('<%= bot._id %>')">FORCER MISE À JOUR</button>
-                  <form action="/owner/bots/<%= bot._id %>/delete" method="POST" style="display:inline;"
-                        onsubmit="return confirm('Supprimer ce bot ?');">
-                    <button type="submit" class="btn danger small">SUPPRIMER</button>
-                  </form>
+                  <div class="bot-name"><%= bot.name %></div>
+                  <span class="bot-sub">Propriétaire <%= bot.ownerId || "inconnu" %> · v<%= currentVersion %></span>
                 </div>
               </div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <% if (currentVersion !== "Inconnue") { %>
+                  <% if (isUpToDate) { %>
+                    <span class="tag tag-success">À jour</span>
+                  <% } else { %>
+                    <span class="tag tag-warn">Obsolète</span>
+                  <% } %>
+                <% } else { %>
+                  <span class="tag tag-muted">Aucune info</span>
+                <% } %>
+              </div>
+            </div>
+            <div class="bot-actions">
+              <button class="btn small" type="button" onclick="showToken('<%= bot._id %>')">Voir le token</button>
+              <button class="btn small" type="button" onclick="forceRestart('<%= bot._id %>')">Redémarrer</button>
+              <button class="btn small" type="button" onclick="forceUpdate('<%= bot._id %>')">Forcer la mise à jour</button>
+              <form action="/owner/bots/<%= bot._id %>/delete" method="POST" style="display:inline;"
+                    onsubmit="return confirm('Supprimer ce bot ?');">
+                <button type="submit" class="btn danger small">Supprimer</button>
+              </form>
             </div>
             <div class="bot-details">
               <p><strong>Ajouté le :</strong> <%= new Date(bot.createdAt).toLocaleString("fr-FR") %></p>
-              <p><strong>Dernier READY :</strong> <%= stats.lastReady ? new Date(stats.lastReady).toLocaleString("fr-FR") : "Jamais" %></p>
+              <p><strong>Dernier ready :</strong> <%= stats.lastReady ? new Date(stats.lastReady).toLocaleString("fr-FR") : "Jamais" %></p>
               <p><strong>Dernier check :</strong> <%= stats.lastCheck ? new Date(stats.lastCheck).toLocaleString("fr-FR") : "Jamais" %></p>
               <p><strong>Redémarrages :</strong> <%= stats.restarts || 0 %></p>
               <p><strong>Erreurs :</strong> <%= stats.errors || 0 %></p>
@@ -94,22 +98,22 @@
   </main>
 
   <footer class="footer">
-    © <%= new Date().getFullYear() %> — HOME UPDATE PANEL ·
-    <a href="<%= support %>" target="_blank" rel="noopener">DISCORD SUPPORT</a>
+    © <%= new Date().getFullYear() %> Home Update ·
+    <a href="<%= support %>" target="_blank" rel="noopener">Support Discord</a>
   </footer>
 
   <!-- Modal ajout bot -->
   <div id="bot-modal" class="modal hidden">
     <div class="modal-box">
-      <h2>AJOUTER UN BOT</h2>
+      <h2>Ajouter un bot</h2>
       <form action="/owner/bots/add" method="POST">
         <input class="input" type="text" name="name" placeholder="Nom du bot" required />
         <input class="input" type="text" name="ownerId" placeholder="ID Discord du propriétaire (optionnel)" />
         <input class="input" type="text" name="tokenPlain" placeholder="Token du bot" required />
         <textarea class="input textarea" name="notes" rows="3" placeholder="Notes (serveur, usage, etc.)"></textarea>
         <div class="modal-actions">
-          <button type="button" class="btn" onclick="closeModal()">ANNULER</button>
-          <button type="submit" class="btn primary">AJOUTER</button>
+          <button type="button" class="btn" onclick="closeModal()">Annuler</button>
+          <button type="submit" class="btn primary">Ajouter</button>
         </div>
       </form>
     </div>
