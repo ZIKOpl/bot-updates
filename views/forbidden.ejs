@@ -2,19 +2,23 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>ACCÈS REFUSÉ • HOME UPDATE</title>
+  <title>Accès refusé — Home Update</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <main class="forbidden">
-    <h1>ACCÈS REFUSÉ</h1>
-    <p>TU DOIS ÊTRE PROPRIÉTAIRE POUR ACCÉDER AU PANEL.</p>
-    <div style="margin-top:1rem">
+    <span class="code">ERR_403</span>
+    <h1>Accès refusé</h1>
+    <p>Cette section est réservée aux propriétaires du panel. Connecte-toi avec un compte Discord autorisé.</p>
+    <div style="margin-top:0.5rem; display:flex; gap:10px;">
       <% if (!user) { %>
-        <a class="btn primary" href="/login">CONNEXION DISCORD</a>
+        <a class="btn primary" href="/login">Connexion Discord</a>
       <% } %>
-      <a class="btn" href="/">RETOUR À L’ACCUEIL</a>
+      <a class="btn" href="/">Retour à l'accueil</a>
     </div>
   </main>
 </body>
