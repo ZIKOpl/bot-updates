@@ -29,6 +29,17 @@ const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const ROLE_ID = process.env.DISCORD_ROLE_ID;
 const SUPPORT_LINK = "https://discord.gg/b9tS35tkjN";
 
+// Clé utilisée par le BOT DISCORD (pas un humain) pour interroger /api/status.
+// Mets la même valeur dans le config.js du bot (manager_api_key) et dans les
+// variables d'environnement de ce serveur (MANAGER_API_KEY).
+const MANAGER_API_KEY = process.env.MANAGER_API_KEY || "changeme";
+
+function requireApiKey(req, res, next) {
+  const key = req.headers["x-api-key"];
+  if (key && key === MANAGER_API_KEY) return next();
+  return res.status(401).json({ error: "Clé API invalide ou manquante." });
+}
+
 const DATA_DIR = path.join(__dirname, "data");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -384,6 +395,45 @@ app.post("/trash/delete/:id", requireOwner, async (req, res) => {
   res.redirect("/trash");
 });
 
+/* ===================== BOTS CONNECTÉS (live status) ===================== */
+const ONLINE_THRESHOLD_MS = 90 * 1000; // le bot ping toutes les 20s, 90s = tolérant
+
+async function getConnectedBots() {
+  const stats = await getStatsDoc();
+  return Object.entries(stats.bots || {})
+    .filter(([id]) => id !== "unknown")
+    .map(([botId, data]) => {
+      const lastCheckMs = data.lastCheck ? new Date(data.lastCheck).getTime() : 0;
+      return {
+        botId,
+        tag: data.tag || null,
+        botVersion: data.botVersion || "Inconnue",
+        startedAt: data.startedAt || null,
+        lastCheck: data.lastCheck || null,
+        online: Date.now() - lastCheckMs < ONLINE_THRESHOLD_MS,
+      };
+    })
+    .sort((a, b) => Number(b.online) - Number(a.online));
+}
+
+// Page web (toi, connecté en Discord OAuth, tu dois être dans OWNER_IDS)
+app.get("/owner/status", requireOwner, async (req, res) => {
+  const bots = await getConnectedBots();
+  const latest = await Release.findOne().sort({ createdAt: -1 });
+  res.render("owner_status", {
+    user: req.user,
+    bots,
+    latestVersion: latest?.version || "v1.0",
+    support: SUPPORT_LINK,
+  });
+});
+
+// API JSON (le bot Discord l'appelle avec le header x-api-key)
+app.get("/api/status", requireApiKey, async (req, res) => {
+  const bots = await getConnectedBots();
+  res.json({ bots });
+});
+
 /* ===================== OWNER : GESTION DES BOTS ===================== */
 app.get("/owner/bots", requireOwner, async (req, res) => {
   const bots = await Bot.find().sort({ createdAt: -1 }).lean();
@@ -454,15 +504,42 @@ app.post("/api/report", async (req, res) => {
   res.json({ ok: true });
 });
 
+async function upsertBotStatus(stats, botId, botVersion, tag, startedAtRaw) {
+  stats.bots = stats.bots || {};
+  const existing = stats.bots[botId] || {};
+  stats.bots[botId] = {
+    botVersion: botVersion || existing.botVersion || "unknown",
+    tag: tag || existing.tag || null,
+    startedAt: startedAtRaw ? new Date(startedAtRaw).toISOString() : existing.startedAt || null,
+    lastCheck: new Date().toISOString(),
+  };
+  stats.markModified("bots"); // nécessaire car "bots" est un champ Mixed
+}
+
+/* ===================== API : HEARTBEAT (statut, sans compter de download) ===================== */
+app.get("/api/ping", async (req, res) => {
+  const botId = (req.query.bot_id || "unknown").toString();
+  const botVersion = req.query.version ? req.query.version.toString() : undefined;
+  const tag = req.query.tag ? req.query.tag.toString() : undefined;
+  const startedAtRaw = req.query.started_at ? Number(req.query.started_at) : null;
+
+  const stats = await getStatsDoc();
+  await upsertBotStatus(stats, botId, botVersion, tag, startedAtRaw);
+  await stats.save();
+
+  res.json({ ok: true });
+});
+
 /* ===================== API : VERSION ===================== */
 app.get("/api/version", async (req, res) => {
   const botId = (req.query.bot_id || "unknown").toString();
   const botVersion = (req.query.version || "unknown").toString();
+  const tag = req.query.tag ? req.query.tag.toString() : undefined;
+  const startedAtRaw = req.query.started_at ? Number(req.query.started_at) : null;
   const stats = await getStatsDoc();
 
   stats.downloads = (stats.downloads || 0) + 1;
-  stats.bots = stats.bots || {};
-  stats.bots[botId] = { botVersion, lastCheck: new Date().toISOString() };
+  await upsertBotStatus(stats, botId, botVersion, tag, startedAtRaw);
   await stats.save();
 
   const latest = await Release.findOne().sort({ createdAt: -1 });
