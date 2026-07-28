@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Bots connectés — Home Update</title>
+  <title>Bots connectés — AddUpdate</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,12 +13,11 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="/logo.png" alt="Home Update" class="sidebar-logo" />
-      <span>Home Update</span>
+      <img src="/logo.png" alt="AddUpdate" class="sidebar-logo" />
+      <span>AddUpdate</span>
     </div>
     <nav class="sidebar-nav">
       <a href="/dashboard">Releases</a>
-      <a href="/owner/bots">Mes bots</a>
       <a href="/owner/status" class="active">Bots connectés</a>
       <a href="/trash">Corbeille</a>
       <a href="/">Accueil</a>
@@ -29,71 +28,231 @@
   </aside>
 
   <main class="dash-content">
-    <% const onlineCount = bots.filter(b => b.online).length; %>
+    <% const onlineCount = bots.filter(b => b.live && b.live.online).length + unregisteredLive.filter(b => b.online).length; %>
+    <% const total = bots.length + unregisteredLive.length; %>
+    <% const upToDateCount = bots.filter(b => b.live && b.live.botVersion === latestVersion).length
+        + unregisteredLive.filter(b => b.botVersion === latestVersion).length; %>
     <header class="page-header">
       <span class="eyebrow">Live signal</span>
       <h1>
         Bots connectés
         <span class="led <%= onlineCount === 0 ? 'off' : 'on' %>" style="display:inline-block; margin-left:10px; vertical-align:middle;"></span>
       </h1>
-      <p>Chaque instance envoie un signal au manager environ toutes les 20 secondes.</p>
-      <div class="header-pills">
-        <span class="version-pill">Version active : <strong><%= latestVersion %></strong></span>
-        <span class="version-pill">Total : <strong><%= bots.length %></strong></span>
-        <span class="version-pill">En ligne : <strong><%= onlineCount %></strong></span>
-      </div>
+      <p>Fiches, statut en direct et actions à distance (redémarrage, mise à jour, message privé) — tout au même endroit.</p>
     </header>
 
-    <section class="bots-grid" style="margin-top:22px;">
-      <% if (bots.length === 0) { %>
+    <div class="stat-bar" style="margin:22px 0 0; max-width:100%;">
+      <div class="stat-item">
+        <b><%= total %></b>
+        <span>Bots enregistrés</span>
+      </div>
+      <div class="stat-item">
+        <b><%= onlineCount %></b>
+        <span>En ligne</span>
+      </div>
+      <div class="stat-item">
+        <b><%= upToDateCount %></b>
+        <span>À jour</span>
+      </div>
+      <div class="stat-item">
+        <b><%= latestVersion %></b>
+        <span>Version active</span>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn primary" type="button" onclick="openModal()">Ajouter un bot</button>
+    </div>
+
+    <section class="bots-grid">
+      <% if (bots.length === 0 && unregisteredLive.length === 0) { %>
         <p class="empty">Aucun bot ne s'est encore signalé.</p>
       <% } else { %>
+
         <% bots.forEach(bot => {
-             const isUpToDate = bot.botVersion === latestVersion;
+             const live = bot.live;
+             const currentVersion = live ? live.botVersion : (bot.stats && bot.stats.botVersion) || "Inconnue";
+             const isUpToDate = currentVersion === latestVersion;
+             const online = !!(live && live.online);
         %>
-          <div class="bot-card">
+          <div class="bot-card" data-id="<%= bot._id %>">
             <div class="bot-header">
               <div class="bot-title">
-                <span class="led <%= bot.online ? 'on' : 'off' %>"></span>
+                <span class="led <%= online ? 'on' : (currentVersion === 'Inconnue' ? 'off' : 'warn') %>"></span>
                 <div>
-                  <div class="bot-name"><%= bot.tag || bot.botId %></div>
-                  <span class="bot-sub">ID <%= bot.botId %> · v<%= bot.botVersion %></span>
+                  <div class="bot-name"><%= bot.name %></div>
+                  <span class="bot-sub">Propriétaire <%= bot.ownerId || "inconnu" %> · v<%= currentVersion %></span>
                 </div>
               </div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="tag <%= bot.online ? 'tag-success' : 'tag-muted' %>">
-                  <%= bot.online ? 'En ligne' : 'Hors ligne' %>
-                </span>
-                <% if (bot.botVersion !== 'Inconnue') { %>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                <% if (bot.discordBotId) { %>
+                  <span class="tag <%= online ? 'tag-success' : 'tag-muted' %>">
+                    <%= online ? 'En ligne' : 'Hors ligne' %>
+                  </span>
+                <% } else { %>
+                  <span class="tag tag-muted">Non lié au signal</span>
+                <% } %>
+                <% if (currentVersion !== "Inconnue") { %>
                   <span class="tag <%= isUpToDate ? 'tag-success' : 'tag-warn' %>">
                     <%= isUpToDate ? 'À jour' : 'Obsolète' %>
                   </span>
                 <% } %>
               </div>
             </div>
+
+            <div class="bot-actions">
+              <button class="btn small" type="button" onclick="showToken('<%= bot._id %>')">Voir le token</button>
+              <button class="btn small" type="button" onclick="openMessageModal('<%= bot._id %>', '<%= bot.name %>')">Message privé</button>
+              <form action="/owner/bots/<%= bot._id %>/restart" method="POST" style="display:inline;"
+                    onsubmit="return confirm('Redémarrer ce bot à distance ?');">
+                <button type="submit" class="btn small" <%- bot.discordBotId ? '' : 'disabled title="Ajoute un ID Discord de bot pour activer cette action"' %>>Redémarrer</button>
+              </form>
+              <form action="/owner/bots/<%= bot._id %>/force-update" method="POST" style="display:inline;"
+                    onsubmit="return confirm('Forcer la mise à jour de ce bot ?');">
+                <button type="submit" class="btn small" <%- bot.discordBotId ? '' : 'disabled title="Ajoute un ID Discord de bot pour activer cette action"' %>>Forcer la mise à jour</button>
+              </form>
+              <form action="/owner/bots/<%= bot._id %>/delete" method="POST" style="display:inline;"
+                    onsubmit="return confirm('Supprimer ce bot ?');">
+                <button type="submit" class="btn danger small">Supprimer</button>
+              </form>
+            </div>
+
             <div class="bot-details">
-              <p><strong>Démarré :</strong>
-                <%= bot.startedAt ? new Date(bot.startedAt).toLocaleString("fr-FR") : "Inconnu" %>
-              </p>
-              <p><strong>Dernier signal :</strong>
-                <%= bot.lastCheck ? new Date(bot.lastCheck).toLocaleString("fr-FR") : "Jamais" %>
-              </p>
+              <p><strong>Ajouté le :</strong> <%= new Date(bot.createdAt).toLocaleString("fr-FR") %></p>
+              <% if (live) { %>
+                <p><strong>Démarré :</strong> <%= live.startedAt ? new Date(live.startedAt).toLocaleString("fr-FR") : "Inconnu" %></p>
+                <p><strong>Dernier signal :</strong> <%= live.lastCheck ? new Date(live.lastCheck).toLocaleString("fr-FR") : "Jamais" %></p>
+              <% } else { %>
+                <p><strong>Dernier check :</strong> <%= bot.stats && bot.stats.lastCheck ? new Date(bot.stats.lastCheck).toLocaleString("fr-FR") : "Jamais" %></p>
+              <% } %>
+              <p><strong>Redémarrages :</strong> <%= (bot.stats && bot.stats.restarts) || 0 %></p>
+              <p><strong>Erreurs :</strong> <%= (bot.stats && bot.stats.errors) || 0 %></p>
+              <% if (bot.meta && bot.meta.notes) { %>
+                <p><strong>Notes :</strong> <%= bot.meta.notes %></p>
+              <% } %>
+              <% if (!bot.discordBotId) { %>
+                <p class="muted">Astuce : renseigne l'ID Discord du bot (celui envoyé via <code>?bot_id=</code>) pour activer le redémarrage et la mise à jour à distance.</p>
+              <% } %>
             </div>
           </div>
         <% }) %>
+
+        <% unregisteredLive.forEach(bot => { %>
+          <div class="bot-card">
+            <div class="bot-header">
+              <div class="bot-title">
+                <span class="led <%= bot.online ? 'on' : 'off' %>"></span>
+                <div>
+                  <div class="bot-name"><%= bot.tag || bot.botId %></div>
+                  <span class="bot-sub">ID <%= bot.botId %> · v<%= bot.botVersion %> · pas encore enregistré</span>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="tag <%= bot.online ? 'tag-success' : 'tag-muted' %>">
+                  <%= bot.online ? 'En ligne' : 'Hors ligne' %>
+                </span>
+                <span class="tag tag-muted">Non enregistré</span>
+              </div>
+            </div>
+            <div class="bot-actions">
+              <button class="btn small primary" type="button" onclick="openModal('<%= bot.botId %>', '<%= bot.tag || "" %>')">Enregistrer ce bot</button>
+            </div>
+            <div class="bot-details">
+              <p><strong>Démarré :</strong> <%= bot.startedAt ? new Date(bot.startedAt).toLocaleString("fr-FR") : "Inconnu" %></p>
+              <p><strong>Dernier signal :</strong> <%= bot.lastCheck ? new Date(bot.lastCheck).toLocaleString("fr-FR") : "Jamais" %></p>
+              <p class="muted">Ce bot envoie déjà son signal au manager, mais n'a pas de fiche (token/propriétaire). Enregistre-le pour pouvoir le redémarrer, le mettre à jour ou lui faire envoyer un message privé.</p>
+            </div>
+          </div>
+        <% }) %>
+
       <% } %>
     </section>
   </main>
 
   <footer class="footer">
-    © <%= new Date().getFullYear() %> Home Update ·
+    © <%= new Date().getFullYear() %> AddUpdate ·
     <a href="<%= support %>" target="_blank" rel="noopener">Support Discord</a>
   </footer>
 
+  <!-- Modal ajout bot -->
+  <div id="bot-modal" class="modal hidden">
+    <div class="modal-box">
+      <h2>Ajouter un bot</h2>
+      <form action="/owner/bots/add" method="POST">
+        <input class="input" type="text" name="name" placeholder="Nom du bot" required />
+        <input class="input" type="text" name="ownerId" placeholder="ID Discord du propriétaire (reçoit les messages privés)" />
+        <input id="discordBotIdInput" class="input" type="text" name="discordBotId" placeholder="ID Discord du bot (pour le lier au signal en direct)" />
+        <input class="input" type="text" name="tokenPlain" placeholder="Token du bot" required />
+        <textarea class="input textarea" name="notes" rows="3" placeholder="Notes (serveur, usage, etc.)"></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn" onclick="closeModal()">Annuler</button>
+          <button type="submit" class="btn primary">Ajouter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal message privé -->
+  <div id="message-modal" class="modal hidden">
+    <div class="modal-box">
+      <h2>Message privé à <span id="message-bot-name"></span></h2>
+      <p class="muted" style="margin:0 0 12px;">Envoyé directement par ce bot à son propriétaire, via Discord.</p>
+      <form id="message-form" method="POST">
+        <textarea class="input textarea" name="message" rows="4" placeholder="Ton message…" required></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn" onclick="closeMessageModal()">Annuler</button>
+          <button type="submit" class="btn primary">Envoyer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
+    // ouverture/fermeture détails
     document.querySelectorAll('.bot-header').forEach(h => {
-      h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
+      h.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('form')) return;
+        h.parentElement.classList.toggle('open');
+      });
     });
+
+    // modal ajout
+    function openModal(discordBotId, name) {
+      const modal = document.getElementById('bot-modal');
+      const form = modal.querySelector('form');
+      form.reset(); // évite de garder les valeurs d'une ouverture précédente
+      modal.classList.remove('hidden');
+      if (discordBotId) document.getElementById('discordBotIdInput').value = discordBotId;
+      if (name) {
+        const nameInput = form.querySelector('input[name="name"]');
+        if (nameInput) nameInput.value = name;
+      }
+    }
+    function closeModal() {
+      document.getElementById('bot-modal').classList.add('hidden');
+    }
+
+    // modal message privé
+    function openMessageModal(id, name) {
+      document.getElementById('message-form').action = '/owner/bots/' + id + '/message';
+      document.getElementById('message-bot-name').textContent = name;
+      document.getElementById('message-modal').classList.remove('hidden');
+    }
+    function closeMessageModal() {
+      document.getElementById('message-modal').classList.add('hidden');
+    }
+
+    // voir token
+    async function showToken(id) {
+      try {
+        const res = await fetch(`/owner/bots/${id}/decrypt`);
+        if (!res.ok) return alert("Erreur lors de la récupération du token.");
+        const data = await res.json();
+        alert(`Token de ${data.name} :\n\n${data.token}`);
+      } catch (e) {
+        alert("Erreur réseau lors de la récupération du token.");
+      }
+    }
   </script>
 </body>
 </html>
