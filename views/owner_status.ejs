@@ -2,43 +2,53 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>BOTS CONNECTÉS • HOME UPDATE</title>
+  <title>Bots connectés — Home Update</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body class="dash">
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="/logo.png" alt="HOME UPDATE" class="sidebar-logo" />
-      <span>HOME UPDATE</span>
+      <img src="/logo.png" alt="Home Update" class="sidebar-logo" />
+      <span>Home Update</span>
     </div>
     <nav class="sidebar-nav">
-      <a href="/dashboard">RELEASES</a>
-      <a href="/owner/bots">MES BOTS</a>
-      <a href="/owner/status" class="active">BOTS CONNECTÉS</a>
-      <a href="/trash">CORBEILLE</a>
-      <a href="/">ACCUEIL</a>
+      <a href="/dashboard">Releases</a>
+      <a href="/owner/bots">Mes bots</a>
+      <a href="/owner/status" class="active">Bots connectés</a>
+      <a href="/trash">Corbeille</a>
+      <a href="/">Accueil</a>
     </nav>
     <div class="sidebar-bottom">
-      <a href="/logout" class="danger">DÉCONNEXION</a>
+      <a href="/logout" class="danger">Déconnexion</a>
     </div>
   </aside>
 
   <main class="dash-content">
+    <% const onlineCount = bots.filter(b => b.online).length; %>
     <header class="page-header">
-      <h1>BOTS CONNECTÉS</h1>
-      <p>TOUTES LES INSTANCES QUI SE SONT SIGNALÉES AU MANAGER, EN DIRECT.</p>
-      <div style="margin-top:10px;">
-        <span class="version-pill">DERNIÈRE VERSION : <strong><%= latestVersion %></strong></span>
-        <span class="version-pill">TOTAL : <strong><%= bots.length %></strong></span>
-        <span class="version-pill">EN LIGNE : <strong><%= bots.filter(b => b.online).length %></strong></span>
+      <span class="eyebrow">Live signal</span>
+      <h1>
+        Bots connectés
+        <span class="pulse-strip <%= onlineCount === 0 ? 'idle' : '' %>" style="margin-left:12px; vertical-align:middle;">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </span>
+      </h1>
+      <p>Chaque instance envoie un signal au manager environ toutes les 20 secondes.</p>
+      <div class="header-pills">
+        <span class="version-pill">Version active : <strong><%= latestVersion %></strong></span>
+        <span class="version-pill">Total : <strong><%= bots.length %></strong></span>
+        <span class="version-pill">En ligne : <strong><%= onlineCount %></strong></span>
       </div>
     </header>
 
-    <section class="bots-grid">
+    <section class="bots-grid" style="margin-top:22px;">
       <% if (bots.length === 0) { %>
-        <p class="muted">Aucun bot ne s'est encore signalé.</p>
+        <p class="empty">Aucun bot ne s'est encore signalé.</p>
       <% } else { %>
         <% bots.forEach(bot => {
              const isUpToDate = bot.botVersion === latestVersion;
@@ -46,17 +56,19 @@
           <div class="bot-card">
             <div class="bot-header">
               <div class="bot-title">
-                <span class="bot-name"><%= bot.tag || bot.botId %></span>
-                <span class="bot-sub">ID Discord : <%= bot.botId %></span>
-                <span class="bot-sub">Version bot : <%= bot.botVersion %></span>
+                <span class="led <%= bot.online ? 'on' : 'off' %>"></span>
+                <div>
+                  <div class="bot-name"><%= bot.tag || bot.botId %></div>
+                  <span class="bot-sub">ID <%= bot.botId %> · v<%= bot.botVersion %></span>
+                </div>
               </div>
-              <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+              <div style="display:flex; align-items:center; gap:8px;">
                 <span class="tag <%= bot.online ? 'tag-success' : 'tag-muted' %>">
-                  <%= bot.online ? 'EN LIGNE' : 'HORS LIGNE' %>
+                  <%= bot.online ? 'En ligne' : 'Hors ligne' %>
                 </span>
                 <% if (bot.botVersion !== 'Inconnue') { %>
                   <span class="tag <%= isUpToDate ? 'tag-success' : 'tag-warn' %>">
-                    <%= isUpToDate ? 'À JOUR' : 'OBSOLÈTE' %>
+                    <%= isUpToDate ? 'À jour' : 'Obsolète' %>
                   </span>
                 <% } %>
               </div>
@@ -76,8 +88,14 @@
   </main>
 
   <footer class="footer">
-    © <%= new Date().getFullYear() %> — HOME UPDATE PANEL ·
-    <a href="<%= support %>" target="_blank" rel="noopener">DISCORD SUPPORT</a>
+    © <%= new Date().getFullYear() %> Home Update ·
+    <a href="<%= support %>" target="_blank" rel="noopener">Support Discord</a>
   </footer>
+
+  <script>
+    document.querySelectorAll('.bot-header').forEach(h => {
+      h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
+    });
+  </script>
 </body>
 </html>
