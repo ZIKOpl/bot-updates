@@ -137,6 +137,38 @@ const upload = multer({
   },
 });
 
+/* ===================== DISCORD API (DM propriétaire) ===================== */
+// Envoie un message privé au propriétaire d'un bot, EN UTILISANT LE TOKEN DU BOT LUI-MÊME.
+// Ne nécessite aucune action du côté de l'instance (contrairement au restart / à l'update
+// qui sont mis en file d'attente et exécutés au prochain heartbeat).
+async function sendDiscordDM(token, userId, content) {
+  const dmRes = await fetch("https://discord.com/api/v10/users/@me/channels", {
+    method: "POST",
+    headers: {
+      Authorization: `Bot ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ recipient_id: userId }),
+  });
+  if (!dmRes.ok) {
+    throw new Error(`Création du salon DM impossible (${dmRes.status}) : ${await dmRes.text()}`);
+  }
+  const channel = await dmRes.json();
+
+  const msgRes = await fetch(`https://discord.com/api/v10/channels/${channel.id}/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bot ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ content }),
+  });
+  if (!msgRes.ok) {
+    throw new Error(`Envoi du message impossible (${msgRes.status}) : ${await msgRes.text()}`);
+  }
+  return msgRes.json();
+}
+
 /* ===================== HELPERS ===================== */
 function formatDate(iso) {
   try {
@@ -264,7 +296,7 @@ app.post("/upload", requireOwner, (req, res) => {
                   inline: true,
                 },
               ],
-              footer: { text: "Home Update Panel" },
+              footer: { text: "AddUpdate Panel" },
             },
           ],
         };
@@ -416,17 +448,38 @@ async function getConnectedBots() {
     .sort((a, b) => Number(b.online) - Number(a.online));
 }
 
-// Page web (toi, connecté en Discord OAuth, tu dois être dans OWNER_IDS)
+// Page web unifiée : statut en direct + gestion complète des bots (ex "Mes bots", fusionnée ici)
 app.get("/owner/status", requireOwner, async (req, res) => {
-  const bots = await getConnectedBots();
+  const liveBots = await getConnectedBots();
+  const registered = await Bot.find().sort({ createdAt: -1 }).lean();
   const latest = await Release.findOne().sort({ createdAt: -1 });
+  const latestVersion = latest?.version || "v1.0";
+
+  const liveByDiscordId = new Map(liveBots.map((b) => [b.botId, b]));
+  const registeredDiscordIds = new Set(
+    registered.map((b) => b.discordBotId).filter(Boolean)
+  );
+
+  // Fiches enregistrées (avec token/propriétaire), enrichies du signal en direct si dispo
+  const bots = registered.map((b) => ({
+    ...b,
+    live: b.discordBotId ? liveByDiscordId.get(b.discordBotId) || null : null,
+  }));
+
+  // Instances qui pingent le manager mais n'ont pas encore de fiche (pas de token/propriétaire enregistré)
+  const unregisteredLive = liveBots.filter((b) => !registeredDiscordIds.has(b.botId));
+
   res.render("owner_status", {
     user: req.user,
     bots,
-    latestVersion: latest?.version || "v1.0",
+    unregisteredLive,
+    latestVersion,
     support: SUPPORT_LINK,
   });
 });
+
+// Ancienne page "Mes bots" fusionnée dans /owner/status
+app.get("/owner/bots", requireOwner, (req, res) => res.redirect("/owner/status"));
 
 // API JSON (le bot Discord l'appelle avec le header x-api-key)
 app.get("/api/status", requireApiKey, async (req, res) => {
@@ -434,31 +487,21 @@ app.get("/api/status", requireApiKey, async (req, res) => {
   res.json({ bots });
 });
 
-/* ===================== OWNER : GESTION DES BOTS ===================== */
-app.get("/owner/bots", requireOwner, async (req, res) => {
-  const bots = await Bot.find().sort({ createdAt: -1 }).lean();
-  const latest = await Release.findOne().sort({ createdAt: -1 });
-  res.render("owner_bots", {
-    user: req.user,
-    bots,
-    latestVersion: latest?.version || "v1.0",
-    support: SUPPORT_LINK,
-  });
-});
-
+/* ===================== OWNER : GESTION DES BOTS (fiches + actions à distance) ===================== */
 app.post("/owner/bots/add", requireOwner, async (req, res) => {
-  const { name, ownerId, tokenPlain, notes } = req.body;
+  const { name, ownerId, discordBotId, tokenPlain, notes } = req.body;
   if (!name || !tokenPlain) return res.status(400).send("Nom et token requis.");
 
   await Bot.create({
     name,
-    ownerId: ownerId || req.user.id, // 🔧 FIX ici
+    ownerId: ownerId || req.user.id,
+    discordBotId: (discordBotId || "").trim() || null,
     token: encrypt(tokenPlain),
     meta: { notes: notes || "" },
     stats: { restarts: 0, errors: 0 },
   });
 
-  res.redirect("/owner/bots");
+  res.redirect("/owner/status");
 });
 
 app.post("/owner/bots/:id/delete", requireOwner, async (req, res) => {
@@ -470,7 +513,7 @@ app.post("/owner/bots/:id/delete", requireOwner, async (req, res) => {
   await Report.deleteMany({ botId: id });
 
   console.log(`🗑️ Bot supprimé : ${bot.name}`);
-  res.redirect("/owner/bots");
+  res.redirect("/owner/status");
 });
 
 app.get("/owner/bots/:id/decrypt", requireOwner, async (req, res) => {
@@ -481,6 +524,63 @@ app.get("/owner/bots/:id/decrypt", requireOwner, async (req, res) => {
     token: decrypt(b.token),
     name: b.name,
   });
+});
+
+// Redémarrage à distance : mis en file d'attente, récupéré par l'instance au prochain
+// heartbeat (/api/ping). Nécessite que le bot ait bien renseigné son discordBotId ici
+// ET qu'il vérifie le champ "command" reçu en réponse de /api/ping côté code du bot.
+app.post("/owner/bots/:id/restart", requireOwner, async (req, res) => {
+  const bot = await Bot.findById(req.params.id);
+  if (!bot) return res.status(404).send("Bot introuvable.");
+  if (!bot.discordBotId) {
+    return res
+      .status(400)
+      .send("Aucun ID Discord de bot renseigné : impossible de cibler l'instance en direct.");
+  }
+
+  bot.pendingCommand = { type: "restart", payload: "", requestedAt: new Date() };
+  await bot.save();
+
+  console.log(`🔁 Redémarrage demandé pour : ${bot.name}`);
+  res.redirect("/owner/status");
+});
+
+// Mise à jour forcée à distance : même principe que le restart, la commande "update"
+// est délivrée à l'instance à son prochain heartbeat.
+app.post("/owner/bots/:id/force-update", requireOwner, async (req, res) => {
+  const bot = await Bot.findById(req.params.id);
+  if (!bot) return res.status(404).send("Bot introuvable.");
+  if (!bot.discordBotId) {
+    return res
+      .status(400)
+      .send("Aucun ID Discord de bot renseigné : impossible de cibler l'instance en direct.");
+  }
+
+  bot.pendingCommand = { type: "update", payload: "", requestedAt: new Date() };
+  await bot.save();
+
+  console.log(`⬆️ Mise à jour forcée demandée pour : ${bot.name}`);
+  res.redirect("/owner/status");
+});
+
+// Message privé envoyé PAR le bot À son propriétaire (utilise le token du bot, envoi immédiat)
+app.post("/owner/bots/:id/message", requireOwner, async (req, res) => {
+  const bot = await Bot.findById(req.params.id);
+  if (!bot) return res.status(404).send("Bot introuvable.");
+
+  const message = (req.body.message || "").trim();
+  if (!message) return res.status(400).send("Message vide.");
+  if (!bot.ownerId) return res.status(400).send("Aucun propriétaire associé à ce bot.");
+
+  try {
+    const token = decrypt(bot.token);
+    await sendDiscordDM(token, bot.ownerId, message);
+    console.log(`✉️ Message privé envoyé par ${bot.name} à ${bot.ownerId}`);
+    res.redirect("/owner/status");
+  } catch (e) {
+    console.error("❌ Erreur envoi DM :", e.message);
+    res.status(500).send("Erreur lors de l'envoi du message : " + e.message);
+  }
 });
 
 /* ===================== API : REPORTS ===================== */
@@ -527,7 +627,22 @@ app.get("/api/ping", async (req, res) => {
   await upsertBotStatus(stats, botId, botVersion, tag, startedAtRaw);
   await stats.save();
 
-  res.json({ ok: true });
+  // Y a-t-il une commande à distance en attente pour ce bot (redémarrage / mise à jour) ?
+  // Le bot doit vérifier ce champ à chaque heartbeat et agir en conséquence.
+  let command = null;
+  if (botId && botId !== "unknown") {
+    const registered = await Bot.findOne({ discordBotId: botId });
+    if (registered?.pendingCommand?.type) {
+      command = {
+        type: registered.pendingCommand.type,
+        payload: registered.pendingCommand.payload || null,
+      };
+      registered.pendingCommand = { type: null, payload: "", requestedAt: null };
+      await registered.save();
+    }
+  }
+
+  res.json({ ok: true, command });
 });
 
 /* ===================== API : VERSION ===================== */
