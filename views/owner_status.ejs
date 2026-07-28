@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body class="dash">
@@ -34,9 +34,7 @@
       <span class="eyebrow">Live signal</span>
       <h1>
         Bots connectés
-        <span class="pulse-strip <%= onlineCount === 0 ? 'idle' : '' %>" style="margin-left:12px; vertical-align:middle;">
-          <span></span><span></span><span></span><span></span><span></span><span></span>
-        </span>
+        <span class="led <%= onlineCount === 0 ? 'off' : 'on' %>" style="display:inline-block; margin-left:10px; vertical-align:middle;"></span>
       </h1>
       <p>Chaque instance envoie un signal au manager environ toutes les 20 secondes.</p>
       <div class="header-pills">
